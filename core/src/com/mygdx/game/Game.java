@@ -1,5 +1,7 @@
 package com.mygdx.game;
 
+import java.util.HashMap;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.math.Vector2;
 import com.mygdx.engine.Camera;
@@ -20,7 +22,7 @@ public class Game extends ApplicationAdapter {
 		// Creamos una escena con un mapa.
 		Engine.getInstance().setCurrentScene(new Scene("map.tmx"));
 		
-//		createPlayer("bot6", new Vector2(10f*Scene.SCALE,70f*Scene.SCALE));
+		createPlayer("bot6", new Vector2(10f*Scene.SCALE,70f*Scene.SCALE));
 		
 		// Creamos Bots 
 		createBot("bot0", new Vector2(9*Scene.SCALE,73*Scene.SCALE), 1);
@@ -61,7 +63,24 @@ public class Game extends ApplicationAdapter {
 	 */
 	public void createPlayer(String key, Vector2 pos){
 		
-		Unit bot = new HeavyUnit(key, 0, "blue2.png", pos);
+		// Luego estará en un fichero config
+				//a la clave hay que añadirle un +1 
+				HashMap<Integer, Integer> mapa = new HashMap<Integer, Integer>();
+				mapa.put(7, 1000);
+				mapa.put(6, 1);
+				mapa.put(1030, 1);
+				mapa.put(178, 0);
+				mapa.put(1261, 2);
+				mapa.put(1, 1000);
+				mapa.put(1087, 1);
+				mapa.put(810, 1);
+				mapa.put(1258, 1);
+				mapa.put(1201, 1);
+				mapa.put(530, 1000);
+				mapa.put(529, 1000);
+				mapa.put(527, 1000);
+		
+		Unit bot = new HeavyUnit(key, 0, "blue2.png", pos, mapa);
 
 		// Lo aÃ±adimos a la escena.
 		Engine.getInstance().getCurrentScene().addObject(key,bot);
@@ -136,7 +155,24 @@ public class Game extends ApplicationAdapter {
 		if(team == 1)
 			textureName = "red1.png";
 		
-		LightUnit bot = new LightUnit(key, team, textureName,pos);
+		// Luego estará en un fichero config
+		//a la clave hay que añadirle un +1 
+		HashMap<Integer, Integer> mapa = new HashMap<Integer, Integer>();
+		mapa.put(7, 1000);
+		mapa.put(6, 1);
+		mapa.put(1030, 1);
+		mapa.put(178, 0);
+		mapa.put(1261, 2);
+		mapa.put(1, 1000);
+		mapa.put(1087, 1);
+		mapa.put(810, 1);
+		mapa.put(1258, 1);
+		mapa.put(1201, 1);
+		mapa.put(530, 1000);
+		mapa.put(529, 1000);
+		mapa.put(527, 1000);
+		
+		LightUnit bot = new LightUnit(key, team, textureName,pos,mapa);
 //		bot.getComponent(BotScript.class).addBehaviour(new WanderU(bot.getComponent(BotScript.class)));
 		
 //		bot.getComponent(BotScript.class).addBehaviour(new Persue(bot.getComponent(BotScript.class), Engine.getInstance().getCurrentScene().find("player").getComponent(BotScript.class), 5f));

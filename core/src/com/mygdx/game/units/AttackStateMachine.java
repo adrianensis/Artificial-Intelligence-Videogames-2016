@@ -34,7 +34,7 @@ public class AttackStateMachine extends StateMachine {
 		Vector2 targetPostition = unit.getTargetAttack().getComponent(BotScript.class).getPosition();
 		
 		// PATHFINDING
-		Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,targetPostition);
+		Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,targetPostition, unit.getTerrainMap());
 		path.setParams(pathfinding.generate());
 		
 //		bot.clearBehaviours(PathFollowing.class);
@@ -168,6 +168,28 @@ public class AttackStateMachine extends StateMachine {
 		});
 		
 		statePersue.addTransition(persueToAttack);
+		
+		// PERSUE -> PERSUE
+		Transition persueToPersue = new Transition(statePersue);
+
+		persueToPersue.setCondition(new Condition() {
+			
+			@Override
+			public boolean test() {
+				
+				return unit.hasNewTargetAttack();
+			}
+		});
+		
+		persueToPersue.setAction(new Action() {
+			
+			@Override
+			public void run() {
+				unit.getComponent(BotScript.class).clearSingleBehaviours();
+			}
+		});
+		
+		statePersue.addTransition(persueToPersue);
 		
 		// ATTACK -> PERSUE
 		Transition attackToPersue = new Transition(statePersue);

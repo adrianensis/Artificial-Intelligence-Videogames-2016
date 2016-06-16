@@ -46,6 +46,7 @@ public class GameController extends Script {
 	private float top;
 	private float deltaCam;
 	private float deltaZoom;
+	private long lastTick;
 	
 	
 	
@@ -55,6 +56,7 @@ public class GameController extends Script {
 		deltaCam = 4;
 		deltaZoom = 0.1f;
 		top = Gdx.graphics.getHeight()-10;
+		lastTick = System.currentTimeMillis();
 						
 		// COGEMOS EL ui PARA NO TENER QUE COGERLO CADA UPDATE
 		ui = UI.getInstance();
@@ -83,36 +85,44 @@ public class GameController extends Script {
 		
 		drawInfo();
 		
-		if(Gdx.input.isKeyJustPressed(Input.Keys.D))
-			debugOnOff();
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
-			clearSelected();
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.G))
-			formationGroup();
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.F))
-			flockingGroup();
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.S))
-			splitGroup();
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.TAB))
-			tab();
-		else if(Gdx.input.isButtonPressed(Input.Buttons.LEFT))
-			leftClick();
-		else if(Gdx.input.isButtonPressed(Input.Buttons.RIGHT))
-			rightClick();
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.PLUS))
-			zoom(-deltaZoom);
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.MINUS))
-			zoom(deltaZoom);
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.UP))
-			moveCamera(0,deltaCam);
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN))
-			moveCamera(0,-deltaCam);
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
-			moveCamera(-deltaCam,0);
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
-			moveCamera(deltaCam,0);
-//		else if(Gdx.input.isKeyPressed(Input.Keys.A))
-//			modeAttack();
+		long now = System.currentTimeMillis();
+		
+//		if((now-lastTick) > 50){
+	
+			if(Gdx.input.isKeyJustPressed(Input.Keys.D))
+				debugOnOff();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
+				clearSelected();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.G))
+				formationGroup();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.F))
+				flockingGroup();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.S))
+				splitGroup();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.TAB))
+				tab();
+			else if(Gdx.input.isButtonPressed(Input.Buttons.LEFT))
+				leftClick();
+			else if(Gdx.input.isButtonPressed(Input.Buttons.RIGHT))
+				rightClick();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.PLUS))
+				zoom(-deltaZoom);
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.MINUS))
+				zoom(deltaZoom);
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.UP))
+				moveCamera(0,deltaCam);
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN))
+				moveCamera(0,-deltaCam);
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
+				moveCamera(-deltaCam,0);
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
+				moveCamera(deltaCam,0);
+		
+			lastTick = now;
+//		}
+		
+		
+
 		
 	}
 	

@@ -64,6 +64,8 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+//				unit.clearTargetAttack();
+//				unit.setDestiny(null);
 				unit.getComponent(BotScript.class).clearSingleBehaviours();
 			}
 		});
@@ -106,7 +108,7 @@ public class BasicStateMachine extends StateMachine{
 				Vector2 botPosition = bot.getPosition();
 				
 				// PATHFINDING
-				Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,unit.getDestiny());
+				Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,unit.getDestiny(), unit.getTerrainMap());
 				path.setParams(pathfinding.generate());
 				
 //				bot.clearBehaviours(PathFollowing.class);
@@ -129,10 +131,7 @@ public class BasicStateMachine extends StateMachine{
 				UI.getInstance().drawTextWorld("GO", pos.x-(w/2),pos.y-(1*Scene.SCALE), Color.BLUE);
 			}
 		});
-		
-		
-		
-		
+			
 		
 		/*
 		 * TRANSITIONS
@@ -162,7 +161,7 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public boolean test() {
-				return unit.hasNewTargetAttack() && unit.getDestiny() != null;
+				return unit.hasNewTargetAttack();
 			}
 		});
 		
@@ -200,6 +199,7 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+				unit.setDestiny(null);
 				unit.clearTargetAttack();
 			}
 		});

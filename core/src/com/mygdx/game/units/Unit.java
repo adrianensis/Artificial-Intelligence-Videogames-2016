@@ -1,5 +1,7 @@
 package com.mygdx.game.units;
 
+import java.util.Map;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.mygdx.engine.Renderer;
@@ -18,9 +20,10 @@ public class Unit extends Bot {
 	private Unit targetAttack, lastTargetAttack;
 	private boolean isTargeted;
 	private UnitGroup group;
+	private Map<Integer, Integer> terrainMap;
 
 	public Unit(String key, int team, String textureName, float speed, float accel, float ang_accel, int mass, Vector2 pos, float rot, 
-			float life, float rangeAttack, float rangeVision, float timeAttack) {
+			float life, float rangeAttack, float rangeVision, float timeAttack, Map<Integer, Integer> terrainMap) {
 		
 		super(key, textureName, speed, accel, ang_accel, mass, pos, rot);
 		
@@ -33,6 +36,7 @@ public class Unit extends Bot {
 		this.lastTargetAttack = null; // ultimo target elegido, para comparar con el target actual
 		this.destiny = null; // destino al que llegar
 		this.lastTimeAttack = 0; // ultima vez que la unidad atacó
+		this.terrainMap = terrainMap;
 		
 		this.addComponent(new Script(){
 			
@@ -62,6 +66,16 @@ public class Unit extends Bot {
 			}
 		});
 		
+	}
+	
+	
+
+	public Map<Integer, Integer> getTerrainMap() {
+		return terrainMap;
+	}
+
+	public void setTerrainMap(Map<Integer, Integer> terrainMap) {
+		this.terrainMap = terrainMap;
 	}
 
 	public float getLife() {
@@ -121,6 +135,8 @@ public class Unit extends Bot {
 		if((this.team != targetAttack.getTeam()) && (this.getName() != targetAttack.getName())){
 			this.lastTargetAttack = this.targetAttack;
 			this.targetAttack = targetAttack;
+			
+//			this.destiny = null;
 		}
 	}
 	

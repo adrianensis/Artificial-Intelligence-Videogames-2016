@@ -2,6 +2,7 @@ package com.mygdx.ia;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.badlogic.gdx.math.Vector2;
 import com.mygdx.engine.Scene;
@@ -13,6 +14,7 @@ public class Pathfinding {
 	private ArrayList<Float> h;
 	private ArrayList<Vector2> actions;
 	private Vector2 start, goal;
+	private Map<Integer, Integer> terrainMap;
 	
 	public static void setConfig(PathfindingConfig configuration){
 		Pathfinding.config = configuration;
@@ -27,9 +29,10 @@ public class Pathfinding {
 	 * @param origin
 	 * @param destiny
 	 */
-	public Pathfinding(Scene scene, Bot bot, Vector2 origin, Vector2 destiny) {
+	public Pathfinding(Scene scene, Bot bot, Vector2 origin, Vector2 destiny, Map<Integer, Integer> terrainMap) {
 		
 		this.scene = scene;
+		this.terrainMap = terrainMap;
 		
 		// punto de partida y punto de llegada en el grid.
 		
@@ -52,7 +55,9 @@ public class Pathfinding {
 //					float heuristicValue = Math.abs(pos.x-goal.x)+Math.abs(pos.y-goal.y);
 					float heuristicValue = config.calculateHeuristic(bot.getClass(), pos, goal);
 					h.add(heuristicValue);
-				}				
+					
+				}
+				
 			}
 			
 			actions = config.getActions(bot.getClass());
@@ -106,9 +111,12 @@ public class Pathfinding {
 		if(!mapContains(pos))
 			return true;
 		
-		int value = Integer.parseInt((String)scene.getTile(pos).getProperties().get("w"));
+//		int value = Integer.parseInt((String)scene.getTile(pos).getProperties().get("w"));
+		
+		int id = scene.getTile(pos).getId();
+		int weight = terrainMap.get(id);
 				
-		return value == 1000;
+		return weight == 1000;
 	}
 	
 	/**
@@ -120,15 +128,21 @@ public class Pathfinding {
 	 * @return
 	 */
 	private  float cost(Scene scene, Vector2 current, Vector2 action){
-		if( ! mapContains(successor(current, action)))
+		
+		Vector2 succesor = successor(current,action);
+		
+		if( ! mapContains(succesor))
 			return Float.POSITIVE_INFINITY;
 		
-		int value = Integer.parseInt((String)scene.getTile(successor(current,action)).getProperties().get("w"));
+//		int weight = Integer.parseInt((String)scene.getTile(succesor).getProperties().get("w"));
 		
-		if(value == 1000)
+		int id = scene.getTile(succesor).getId();
+		int weight = terrainMap.get(id);
+		
+		if(weight == 1000)
 			return Float.POSITIVE_INFINITY;
 		
-		return value;
+		return weight;
 	}
 	
 	/**
