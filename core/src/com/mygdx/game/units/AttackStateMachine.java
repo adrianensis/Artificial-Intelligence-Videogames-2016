@@ -10,9 +10,7 @@ import com.mygdx.engine.UI;
 import com.mygdx.ia.BotScript;
 import com.mygdx.ia.Path;
 import com.mygdx.ia.Pathfinding;
-import com.mygdx.ia.behaviours.basic.ArriveUA;
 import com.mygdx.ia.behaviours.delgate.PathFollowing;
-import com.mygdx.ia.behaviours.delgate.Persue;
 import com.mygdx.ia.statemachine.Action;
 import com.mygdx.ia.statemachine.Condition;
 import com.mygdx.ia.statemachine.State;
@@ -36,12 +34,13 @@ public class AttackStateMachine extends StateMachine {
 		// PATHFINDING
 		Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,targetPostition, unit.getTerrainMap());
 		path.setParams(pathfinding.generate());
+
 		
-//		bot.clearBehaviours(PathFollowing.class);
-		bot.clearSingleBehaviours();
-		
-		if( ! path.isEmpty())
+		if( ( ! path.isEmpty()) && ( ! pathfinding.destinyUnreachable())){
+			bot.clearSingleBehaviours();
 			bot.addBehaviour(new PathFollowing(bot, path, 0f));
+			
+		}
 	}
 	
 	public AttackStateMachine(final Unit unit) {
@@ -76,11 +75,18 @@ public class AttackStateMachine extends StateMachine {
 			@Override
 			public void run() {
 				
+				/*
+				 * Esta accion comprueba si el objetivo se esta moviendo, si es así, vuelve
+				 * a lanzar el pathfinding para perseguir al objetivo hasta su nueva posición.
+				 */
+				
 				Vector2 targetVel = unit.getTargetAttack().getComponent(BotScript.class).getVelocity();
 				
 				if( ! targetVel.isZero()){
 					followTarget(unit);
 				}
+				
+				// a parte, dibujamos el nombre del estado.
 				
 				Vector2 pos = unit.getComponent(Transform.class).position;
 				float w = unit.getComponent(Renderer.class).getSprite().getWidth();
@@ -131,7 +137,7 @@ public class AttackStateMachine extends StateMachine {
 			
 			@Override
 			public boolean test() {
-				return true; // siempre true, forzamos a que siempre haga esta transicion cuando esta en el estado INIT.
+				return true;
 			}
 		});
 		
@@ -170,26 +176,26 @@ public class AttackStateMachine extends StateMachine {
 		statePersue.addTransition(persueToAttack);
 		
 		// PERSUE -> PERSUE
-		Transition persueToPersue = new Transition(statePersue);
-
-		persueToPersue.setCondition(new Condition() {
-			
-			@Override
-			public boolean test() {
-				
-				return unit.hasNewTargetAttack();
-			}
-		});
-		
-		persueToPersue.setAction(new Action() {
-			
-			@Override
-			public void run() {
-				unit.getComponent(BotScript.class).clearSingleBehaviours();
-			}
-		});
-		
-		statePersue.addTransition(persueToPersue);
+//		Transition persueToPersue = new Transition(statePersue);
+//
+//		persueToPersue.setCondition(new Condition() {
+//			
+//			@Override
+//			public boolean test() {
+//				
+//				return unit.hasNewTargetAttack();
+//			}
+//		});
+//		
+//		persueToPersue.setAction(new Action() {
+//			
+//			@Override
+//			public void run() {
+//				unit.getComponent(BotScript.class).clearSingleBehaviours();
+//			}
+//		});
+//		
+//		statePersue.addTransition(persueToPersue);
 		
 		// ATTACK -> PERSUE
 		Transition attackToPersue = new Transition(statePersue);

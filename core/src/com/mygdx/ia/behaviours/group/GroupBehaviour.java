@@ -12,6 +12,7 @@ public abstract class GroupBehaviour extends Behaviour {
 	public GroupBehaviour(List<BotScript> targets) {
 		super();
 		this.targets = targets;
+		this.setWeight(0.6f);
 	}
 	
 	public List<BotScript> getTargets() {

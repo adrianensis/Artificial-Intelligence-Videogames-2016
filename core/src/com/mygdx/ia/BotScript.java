@@ -106,15 +106,26 @@ public class BotScript extends Script {
 		setRotation(rot + (steering.angular * time)); // rot := rot + steering.angular * time
 		
 		/*
-		 * ROZAMIENTO PARA ALIGN
+		 * ROZAMIENTO
 		 */
+		
+		float value = 10*time;
+		
 		if(getRotation() > 0){
-			setRotation(getRotation()-10*time);
+			setRotation(getRotation()-value);
 		}
 		
 		if(getRotation() < 0){
-			setRotation(getRotation()+10*time);
+			setRotation(getRotation()+value);
 		}
+		
+//		if(getVelocity().len() > 0){
+//			setVelocity(getVelocity().add(-value, -value));
+//		}
+//		
+//		if(getVelocity().len() < 0){
+//			setVelocity(getVelocity().add(value, value));
+//		}
 	
 	}
 	
@@ -137,22 +148,22 @@ public class BotScript extends Script {
 		float w = gameObject.getComponent(Renderer.class).getSprite().getWidth();
 		Vector2 pos = getPosition();
 		
-		UI.getInstance().drawTextWorld(gameObject.getName(),pos.x-(w/2),pos.y+(1.2f*Scene.SCALE), Color.WHITE);
+//		UI.getInstance().drawTextWorld(gameObject.getName(),pos.x-(w/2),pos.y+(1.2f*Scene.SCALE), Color.WHITE);
 		
 		/*
 		 * DIBUJAMOS LINEA DESDE EL CENTRO DEL SPRITE, CON DIRECCION SU VECTOR Velocidad
 		 */
-		UI.getInstance().drawLine(getPosition().cpy().add(0, -1),getVelocity().cpy().scl(10).add(getPosition()), Color.RED);
+		UI.getInstance().drawLineWorld(getPosition().cpy().add(0, -1),getVelocity().cpy().nor().scl(2*Scene.SCALE).add(getPosition()), Color.RED, false);
 		
 		/*
 		 * Dibujar aceleracion
 		 */
-		UI.getInstance().drawLine(getPosition().cpy().add(0,1),steering.linear.cpy().scl(10).add(getPosition()), Color.YELLOW);
+		UI.getInstance().drawLineWorld(getPosition().cpy().add(0,1),steering.linear.cpy().nor().scl(2*Scene.SCALE).add(getPosition()), Color.YELLOW, false);
 		
 		float x = MathUtils.cos(MathUtils.degRad*getOrientation())*Scene.SCALE;
 		float y = MathUtils.sin(MathUtils.degRad*getOrientation())*Scene.SCALE;
 		
-		UI.getInstance().drawLine(getPosition(),getPosition().cpy().add(x,y), Color.CYAN);
+		UI.getInstance().drawLineWorld(getPosition(),getPosition().cpy().add(x,y), Color.CYAN, false);
 
 	}
 	
@@ -231,9 +242,10 @@ public class BotScript extends Script {
 		
 		for (Class<? extends GroupBehaviour> c : listClasses) {
 			for (Behaviour b : this.behaviours) {
-				if(b instanceof GroupBehaviour)
+				if(b instanceof GroupBehaviour){
 					((GroupBehaviour) b).getTargets().remove(this);
 					removables.add((GroupBehaviour)b);
+				}
 			}
 		}
 		

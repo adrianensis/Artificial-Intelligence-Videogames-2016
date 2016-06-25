@@ -66,4 +66,13 @@ public class GameObject {
 		
 		return (List<T>) foundComponents;
 	}
+	
+	/**
+	 * Destruye todos los componentes del objeto.
+	 */
+	public void destroy(){
+		for (Component component : components) {
+			component.destroy();
+		}
+	}
 }

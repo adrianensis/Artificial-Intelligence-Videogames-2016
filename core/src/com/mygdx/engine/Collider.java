@@ -18,6 +18,7 @@ public class Collider extends Component {
 	
 	private BodyDef bodyDef;
 	private Body body;
+	private Fixture fixture;
 	float w,h;
 	
 	public Collider(float w, float h,boolean isStatic) {
@@ -51,7 +52,7 @@ public class Collider extends Component {
         
         fixtureDef.isSensor = true;
 
-        Fixture fixture = body.createFixture(fixtureDef);
+        fixture = body.createFixture(fixtureDef);
         fixture.setUserData(this.gameObject);
         shape.dispose();
 	}
@@ -74,6 +75,21 @@ public class Collider extends Component {
 
 	public Body getBody(){
 		return this.body;
+	}
+
+	@Override
+	public void destroy() {
+		this.body.getWorld().destroyBody(this.body);
+		for (Fixture f : body.getFixtureList()) {
+			this.body.destroyFixture(f);
+			f.setUserData(null);
+		}
+		
+		
+		fixture.setUserData(null);
+		body.setUserData(null);
+        body = null;
+        fixture = null;
 	}
 
 }

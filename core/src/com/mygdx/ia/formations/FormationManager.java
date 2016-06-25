@@ -119,6 +119,7 @@ public class FormationManager {
 			location.orientation = location.orientation - driftOffset.orientation;
 			
 			BotScript bot = slotAssignments.get(i).getBot().getComponent(BotScript.class);
+			bot.clearBehaviours(SeekU.class);
 			bot.addBehaviour(new SeekU(bot, location));
 		}
 	}

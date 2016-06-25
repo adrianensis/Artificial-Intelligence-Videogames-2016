@@ -15,13 +15,13 @@ public class FlockingGroup extends UnitGroup {
 	
 	private LinkedList<BotScript> targets;
 
-	public FlockingGroup() {
-		super();
+	public FlockingGroup(String key) {
+		super(key);
 		this.targets = new LinkedList<BotScript>();
 	}
 	
-	public FlockingGroup(List<Unit> units) {
-		super(units);
+	public FlockingGroup(String key,List<Unit> units) {
+		super(key,units);
 		
 		this.targets = new LinkedList<BotScript>();
 		
@@ -62,6 +62,16 @@ public class FlockingGroup extends UnitGroup {
 			targets.remove(bot);
 		}
 		
+	}
+	
+	@Override
+	public void splitUnit(Unit unit) {
+		super.splitUnit(unit);
+		
+		BotScript bot = unit.getComponent(BotScript.class);
+		
+		targets.remove(bot);
+		bot.clearGroupBehaviours(Cohesion.class, Separation.class, Alignment.class);
 	}
 
 	@Override

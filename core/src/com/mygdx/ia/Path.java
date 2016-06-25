@@ -94,20 +94,16 @@ public class Path {
 	public void render(){
 		
 		if( ! this.params.isEmpty()){
-			UI.getInstance().drawCircle(this.params.get(0), 2, Color.YELLOW);
-			UI.getInstance().drawCircle(this.params.get(0), radius,Color.RED);
+			UI.getInstance().drawCircleWorld(this.params.get(0), 2,Color.GREEN,false);
 			
 			Vector2 last = this.params.get(0);
 			
 			for (int i = 1; i < this.params.size(); i++) {
-				UI.getInstance().drawLine(last, this.params.get(i), Color.RED);
-				UI.getInstance().drawCircle(this.params.get(i), 2,Color.YELLOW);
-//				UI.getInstance().drawCircle(this.params.get(i), radius,Color.YELLOW);
+				UI.getInstance().drawLineWorld(last, this.params.get(i), Color.RED,false);
 				last = this.params.get(i);
 			}
 			
-			UI.getInstance().drawCircle(this.params.get(this.params.size()-1), 2,Color.YELLOW);
-			UI.getInstance().drawCircle(this.params.get(this.params.size()-1), radius,Color.BLUE);
+			UI.getInstance().drawCircleWorld(this.params.get(this.params.size()-1), 2,Color.BLUE,false);
 		}
 	}
 }

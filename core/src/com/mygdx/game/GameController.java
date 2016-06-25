@@ -22,9 +22,11 @@ import com.mygdx.game.units.FlockingGroup;
 import com.mygdx.game.units.FormationGroup;
 import com.mygdx.game.units.HeavyUnit;
 import com.mygdx.game.units.LightUnit;
+import com.mygdx.game.units.PhantomUnit;
+import com.mygdx.game.units.SpawnBaseUnit;
 import com.mygdx.game.units.Unit;
+import com.mygdx.game.units.Unit.Mode;
 import com.mygdx.game.units.UnitGroup;
-import com.mygdx.ia.BotScript;
 import com.mygdx.ia.Heuristic;
 import com.mygdx.ia.Pathfinding;
 import com.mygdx.ia.PathfindingConfig;
@@ -47,12 +49,14 @@ public class GameController extends Script {
 	private float deltaCam;
 	private float deltaZoom;
 	private long lastTick;
+	private boolean showInfo;
 	
 	
 	
 	@Override
 	public void start() {
 		
+		showInfo = false;
 		deltaCam = 4;
 		deltaZoom = 0.1f;
 		top = Gdx.graphics.getHeight()-10;
@@ -75,9 +79,16 @@ public class GameController extends Script {
 		 */
 		config = new PathfindingConfig();
 		config.bindHeuristic(LightUnit.class, Heuristic.EUCLIDEAN);
-		config.bindHeuristic(HeavyUnit.class, Heuristic.MANHATTAN);
+		config.bindHeuristic(PhantomUnit.class, Heuristic.EUCLIDEAN);
+		config.bindHeuristic(HeavyUnit.class, Heuristic.EUCLIDEAN);
 		
 		Pathfinding.setConfig(config);
+		
+		/*
+		 * WAYPOINTS
+		 */
+
+		Waypoints.getInstance().loadWaypoints(scene);
 	}
 	
 	@Override
@@ -91,6 +102,8 @@ public class GameController extends Script {
 	
 			if(Gdx.input.isKeyJustPressed(Input.Keys.D))
 				debugOnOff();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.I))
+				showInfo = ! showInfo;
 			else if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
 				clearSelected();
 			else if(Gdx.input.isKeyJustPressed(Input.Keys.G))
@@ -117,6 +130,10 @@ public class GameController extends Script {
 				moveCamera(-deltaCam,0);
 			else if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
 				moveCamera(deltaCam,0);
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1))
+				offensive();
+			else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2))
+				defensive();
 		
 			lastTick = now;
 //		}
@@ -169,12 +186,13 @@ public class GameController extends Script {
 					
 					// TODOS LOS COLLIDERS LLEVAN ASOCIADO UN USER DATA. HEMOS PUESTO EL GAME OBJECT COMO USER DATA.
 					// ASI LO PODEMOS RECUPERAR CADA VEZ QUE COLISIONA EL RAY CAST.
-					selected = (GameObject) fixture.getUserData();
+					if(fixture.getUserData() != null)
+						selected = (GameObject) fixture.getUserData();
 					
 //					System.out.println("Click! ");
 				}
 				
-				return 0;
+				return 1;
 			}
 		}, camPos, cursor);
 	}
@@ -198,10 +216,10 @@ public class GameController extends Script {
 				
 		if(unit.getGroup() != null){
 			for (Unit u : unit.getGroup().getUnits()) {
-				ui.drawCircle(u.getComponent(Transform.class).position, o.getComponent(Renderer.class).getSprite().getWidth(), Color.YELLOW);
+				ui.drawCircleWorld(u.getComponent(Transform.class).position, o.getComponent(Renderer.class).getSprite().getWidth(), Color.YELLOW, false);
 			}
 		}else{
-			ui.drawCircle(o.getComponent(Transform.class).position, o.getComponent(Renderer.class).getSprite().getWidth(), Color.YELLOW);
+			ui.drawCircleWorld(o.getComponent(Transform.class).position, o.getComponent(Renderer.class).getSprite().getWidth(), Color.YELLOW, false);
 		}
 	}
 	
@@ -215,11 +233,15 @@ public class GameController extends Script {
 		
 		float w = o.getComponent(Renderer.class).getSprite().getWidth();
 		
-		ui.drawCircle(o.getComponent(Transform.class).position, w-(w*0.2f), Color.YELLOW);
+		Vector2 pos = o.getComponent(Transform.class).position;
+		
+		ui.drawCircleWorld(pos, w-(w*0.1f), Color.YELLOW, false);
+		ui.drawCircleWorld(pos, unit.getRangeVision(), Color.GREEN, false);
+		ui.drawCircleWorld(pos, unit.getRangeAttack(), Color.RED, false);
 				
 		if(unit.getGroup() != null){
 			for (Unit u : unit.getGroup().getUnits()) {
-				ui.drawCircle(u.getComponent(Transform.class).position, w, Color.YELLOW);
+				ui.drawCircleWorld(u.getComponent(Transform.class).position, w, Color.YELLOW, false);
 			}
 		}
 	}
@@ -269,7 +291,7 @@ public class GameController extends Script {
 		
 		pos.add(difference.nor().scl(len/(2*Scene.SCALE)));	
 		
-		ui.drawLine(pos,cursor, Color.GRAY);
+		ui.drawLineWorld(pos,cursor, Color.GRAY, false);
 		
 	}
 	
@@ -281,35 +303,52 @@ public class GameController extends Script {
 		selectedGroup.clear();
 	}
 	
-	
 	/**
 	 * Dibuja la informacion de debug del juego
 	 */
 	private void drawInfo(){
 		
-		ui.drawCircle(getCursorPosition(), 0.1f*Scene.SCALE, Color.WHITE);
+		ui.drawCircleWorld(getCursorPosition(), 0.1f*Scene.SCALE, Color.WHITE, false);
 
 		if(selected != null){
-			ui.drawText("> SELECTED OBJECT: " + selected.getName(), 10, 20, Color.WHITE);
+			ui.drawText("> total selected: "+selectedGroup.size(), 10, 40, Color.WHITE);
+			ui.drawText("> current selected: " + selected.getName(), 10, 20, Color.WHITE);
 			drawActiveCircle(selected);
 		}
 		
-		if( ! selectedGroup.isEmpty())
+		if( ! selectedGroup.isEmpty()){
 			for (Unit unit : selectedGroup) {
 				drawSelectionCircle(unit);
 			}
-		
-		ui.drawText("> Press 'Right Click' to select a DESTINY or ATTACK a target", 10, top, Color.WHITE);
-		ui.drawText("> Press 'Left Click' to SELECT other unit and move the CAMERA", 10, top-20, Color.WHITE);
-		ui.drawText("> Press 'Ctrl + Left Click' to select MULTIPLE units", 10, top-40, Color.WHITE);
-		ui.drawText("> Press 'TAB' to switch to the next unit", 10, top-60, Color.WHITE);
-				
-		if(selectedGroup.size() > 1){
-			ui.drawText("> Press 'F' to use FLOCKING in multiple units", 10, top-100, Color.WHITE);
-			ui.drawText("> Press 'G' to join in CIRCLE shape multiple units", 10, top-120, Color.WHITE);
-			ui.drawText("> Press 'S' to split multiple units", 10, top-140, Color.WHITE);
-			ui.drawText("> "+selectedGroup.size()+" selected", 10, top-160, Color.WHITE);
 		}
+		
+		float lineY = top;
+		
+		if(showInfo){
+			ui.drawText("> Press 'D' to enable/disable the DEBUG RENDER", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'Right Click' to select a DESTINY or ATTACK a target or PATROL a base", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'Left Click' to SELECT an unit", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'ESC' to DESELECT an unit", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'Drag Left Click' or 'Arroy Keys' to move the CAMERA", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'Ctrl + Left Click' to select MULTIPLE units", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'TAB' to switch to the next unit", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press '1' to set unit in OFFENSIVE MODE", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press '2' to set unit in DEFENSIVE MODE", 10, lineY, Color.WHITE); lineY-=20;
+			
+			
+			lineY-=20;
+					
+			if(selectedGroup.size() > 1){
+				ui.drawText("> Press 'F' to use FLOCKING in multiple units", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press 'G' to join in CIRCLE shape multiple units", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press 'S' to split multiple units", 10, lineY, Color.WHITE); lineY-=20;
+				
+			}
+		}else{
+			ui.drawText("> Press 'I' to SHOW/HIDE info", 10, top, Color.WHITE);
+		}
+		
+		
 
 	}
 	
@@ -323,6 +362,8 @@ public class GameController extends Script {
 		 * 2. ir hacia un punto
 		 */
 		
+//		System.out.println(scene.getTile(scene.fromWorldtoGridCoordinates(getCursorPosition())).getId());
+		
 		if (selected != null){
 			Unit unit = ((Unit)selected); // cogemos el seleccionado actual
 			
@@ -332,8 +373,13 @@ public class GameController extends Script {
 			
 			Unit selectedUnit = (Unit) selected;
 			
+			if(selectedUnit != null && unit.getName() != selectedUnit.getName() && selectedUnit instanceof SpawnBaseUnit && ((SpawnBaseUnit)selectedUnit).getTeam() == unit.getTeam()){
+			
+				unit.setPatrolBase(true);
+				
+				
 			// si hemos clickado a una unidad diferente a la nuestra, entonces la atacamos
-			if(selectedUnit != null && unit.getName() != selectedUnit.getName()){
+			}else if(selectedUnit != null && unit.getName() != selectedUnit.getName()){
 				
 //				if(unit.getGroup() != null){
 //					unit.getGroup().setTargetAttack((Unit) selected);
@@ -358,7 +404,7 @@ public class GameController extends Script {
 	
 	private void select(Unit unit){
 		if(unit != null){
-			
+						
 			if(unit.getGroup() == null && Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT)){
 				addToSelectedGroup(unit);
 			}else{
@@ -387,12 +433,40 @@ public class GameController extends Script {
 		 * 2. left click + ctrl: agrupa unidades
 		 * 3. mover la camara
 		 */
+		
+//		System.out.println(scene.fromWorldtoGridCoordinates(getCursorPosition()));
 
 		moveCameraToCursor();
 		
 		raycastSelect();
 		
 		select((Unit) selected);
+	}
+	
+	/**
+	 * Establece las unidades en modo ofensivo.
+	 */
+	private void offensive(){
+//		if(selected != null){
+//			((Unit) selected).setMode(Mode.OFFENSIVE);
+//		}
+		
+		for (Unit u : selectedGroup) {
+			u.setMode(Mode.OFFENSIVE);
+		}
+	}
+	
+	/**
+	 * Establece las unidades en modo defensivo.
+	 */
+	private void defensive(){
+//		if(selected != null){
+//			((Unit) selected).setMode(Mode.DEFENSIVE);
+//		}
+		
+		for (Unit u : selectedGroup) {
+			u.setMode(Mode.DEFENSIVE);
+		}
 	}
 	
 	/**
@@ -437,24 +511,31 @@ public class GameController extends Script {
 	 * comportamiento de Flocking.
 	 */
 	private void flockingGroup(){
+		
+		if(selectedGroup.size() > 1){
 
-		UnitGroup unitGroup = new FlockingGroup(selectedGroup);	
-		unitGroup.join();
-		
-		groups.add(unitGroup);
-		
-		selectedGroup.clear();
+			UnitGroup unitGroup = new FlockingGroup(null,selectedGroup);	
+			unitGroup.join();
+			
+			groups.add(unitGroup);
+			
+			selectedGroup.clear();
+		}
 		
 	}
 	
 	private void formationGroup(){
+		
+		if(selectedGroup.size() > 1){
 
-		UnitGroup unitGroup = new FormationGroup(selectedGroup);	
-		unitGroup.join();
-		
-		groups.add(unitGroup);
-		
-		selectedGroup.clear();
+			UnitGroup unitGroup = new FormationGroup(null,selectedGroup);	
+			unitGroup.join();
+			
+			groups.add(unitGroup);
+			Engine.getInstance().getCurrentScene().addObject(unitGroup);
+			
+			selectedGroup.clear();
+		}
 		
 	}
 	
@@ -469,6 +550,7 @@ public class GameController extends Script {
 		if(unit.getGroup() != null){
 			unit.getGroup().split();
 			groups.remove(unit.getGroup());
+			Engine.getInstance().getCurrentScene().removeObject(unit.getGroup());
 		}
 	}
 	

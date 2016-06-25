@@ -11,15 +11,15 @@ public class FormationGroup extends UnitGroup {
 	private FormationManager fm;
 	private FormationCircle fc;
 	
-	public FormationGroup() {
-		super();
+	public FormationGroup(String key) {
+		super(key);
 		this.fc = new FormationCircle(0);
 		this.fm = new FormationManager(this.fc);
 		
 	}
 	
-	public FormationGroup(List<Unit> units) {
-		super(units);
+	public FormationGroup(String key,List<Unit> units) {
+		super(key,units);
 		this.fc = new FormationCircle(0);
 		this.fm = new FormationManager(this.fc);
 		
@@ -45,6 +45,11 @@ public class FormationGroup extends UnitGroup {
 	public void split() {
 		super.split();
 	}
+	
+	@Override
+	public void splitUnit(Unit unit) {
+		super.splitUnit(unit);
+	}
 
 	@Override
 	public void setDestiny(Vector2 destiny) {
@@ -55,6 +60,14 @@ public class FormationGroup extends UnitGroup {
 	@Override
 	public void setTargetAttack(Unit targetAttack) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void updateGroup() {
+		super.updateGroup();
+//		this.fm.updateSlots();
+				
 		
 	}
 	

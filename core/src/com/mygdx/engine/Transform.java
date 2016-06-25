@@ -71,4 +71,9 @@ public class Transform extends Component {
 		
 	}
 
+	@Override
+	public void destroy() {
+
+	}
+
 }

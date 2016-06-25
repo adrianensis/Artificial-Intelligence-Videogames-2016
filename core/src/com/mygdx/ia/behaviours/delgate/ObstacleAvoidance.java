@@ -58,7 +58,7 @@ public class ObstacleAvoidance extends Behaviour {
 		if (collision == null) {
 			System.out.println("not running");
 			// verde si no tiene colisi�n
-			UI.getInstance().drawLine(bot.getPosition(), arrowhead, Color.GREEN);
+			UI.getInstance().drawLineWorld(bot.getPosition(), arrowhead, Color.GREEN,false);
 			return new Steering();
 		}
 		System.out.println("start running");
@@ -69,7 +69,7 @@ public class ObstacleAvoidance extends Behaviour {
 		// TODO el error es que el vector tira hacia el infinity, �por que?
 		// rojo si tiene colisi�n
 		this.collision = null;
-		UI.getInstance().drawLine(bot.getPosition(), arrowhead, Color.RED);
+		UI.getInstance().drawLineWorld(bot.getPosition(), arrowhead, Color.RED,false);
 		return new SeekU(bot, t).getSteering();
 	}
 }

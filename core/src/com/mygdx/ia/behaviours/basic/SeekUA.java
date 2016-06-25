@@ -1,6 +1,7 @@
 package com.mygdx.ia.behaviours.basic;
 
 import com.badlogic.gdx.math.MathUtils;
+import com.mygdx.engine.Scene;
 import com.mygdx.engine.Transform;
 import com.mygdx.ia.BotScript;
 import com.mygdx.ia.Steering;
@@ -26,6 +27,13 @@ public class SeekUA extends Behaviour{
 	public Steering getSteering() {
 		
 		Steering steering = new Steering();
+		
+		/*
+		 * PARCHE: si el punto destino es casi igual al origen, no hacemos nada.
+		 */
+		
+		if(target.position.epsilonEquals(bot.getPosition(), Scene.SCALE*0.3f))
+			return steering;
 		
 		steering.linear = target.position.cpy().sub(bot.getPosition()); // cpy() hace una copia para no modificar el original
 		

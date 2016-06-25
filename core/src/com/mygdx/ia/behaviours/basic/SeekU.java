@@ -35,6 +35,13 @@ public class SeekU extends Behaviour{
 		
 		Steering steering = new Steering();
 		
+		/*
+		 * PARCHE: si el punto destino es casi igual al origen, no hacemos nada.
+		 */
+		
+		if(target.position.epsilonEquals(bot.getPosition(), Scene.SCALE*0.3f))
+				return steering;
+		
 		steering.velocity = target.position.cpy().sub(bot.getPosition()); // cpy() hace una copia para no modificar el original
 		
 		steering.velocity.nor().scl(bot.getMax_speed());

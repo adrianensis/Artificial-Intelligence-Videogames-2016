@@ -15,9 +15,18 @@ public class Pathfinding {
 	private ArrayList<Vector2> actions;
 	private Vector2 start, goal;
 	private Map<Integer, Integer> terrainMap;
+	private boolean unreachable; // booleano para saber si el destino que queríamos alcanzar es inalcanzable.
 	
 	public static void setConfig(PathfindingConfig configuration){
 		Pathfinding.config = configuration;
+	}
+	
+	/**
+	 * Esta funcion permite saber si el pathfinding que hemos lanzado no llega a ningún lado.
+	 * @return
+	 */
+	public boolean destinyUnreachable(){
+		return unreachable;
 	}
 	
 	/**
@@ -31,6 +40,7 @@ public class Pathfinding {
 	 */
 	public Pathfinding(Scene scene, Bot bot, Vector2 origin, Vector2 destiny, Map<Integer, Integer> terrainMap) {
 		
+		this.unreachable = false;
 		this.scene = scene;
 		this.terrainMap = terrainMap;
 		
@@ -115,8 +125,11 @@ public class Pathfinding {
 		
 		int id = scene.getTile(pos).getId();
 		int weight = terrainMap.get(id);
+		
+		if(weight == 1000)
+			unreachable = true;
 				
-		return weight == 1000;
+		return unreachable;
 	}
 	
 	/**
@@ -223,6 +236,10 @@ public class Pathfinding {
 				// current = sucesor de current con la acción a.
 				current = successor(current, a);
 				path.add(scene.fromGridToWorldCoordinates(current));
+				
+//				if(iterations % 2 == 0)
+//					path.add(scene.fromGridToWorldCoordinates(current));
+				
 
 			}
 		}

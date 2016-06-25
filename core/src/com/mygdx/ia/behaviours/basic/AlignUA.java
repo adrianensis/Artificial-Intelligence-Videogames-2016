@@ -37,19 +37,19 @@ public class AlignUA extends Behaviour{
 	
 		float x = MathUtils.cos(MathUtils.degRad*(bot.getOrientation()+slowAngle/2))*Scene.SCALE;
 		float y = MathUtils.sin(MathUtils.degRad*(bot.getOrientation()+slowAngle/2))*Scene.SCALE;
-		UI.getInstance().drawLine(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN);
+		UI.getInstance().drawLineWorld(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN,false);
 		
 		x = MathUtils.cos(MathUtils.degRad*(bot.getOrientation()-slowAngle/2))*Scene.SCALE;
 		y = MathUtils.sin(MathUtils.degRad*(bot.getOrientation()-slowAngle/2))*Scene.SCALE;
-		UI.getInstance().drawLine(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN);
+		UI.getInstance().drawLineWorld(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN,false);
 		
 		x = MathUtils.cos(MathUtils.degRad*(bot.getOrientation()+targetAngle/2))*Scene.SCALE;
 		y = MathUtils.sin(MathUtils.degRad*(bot.getOrientation()+targetAngle/2))*Scene.SCALE;
-		UI.getInstance().drawLine(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN);
+		UI.getInstance().drawLineWorld(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN,false);
 		
 		x = MathUtils.cos(MathUtils.degRad*(bot.getOrientation()-targetAngle/2))*Scene.SCALE;
 		y = MathUtils.sin(MathUtils.degRad*(bot.getOrientation()-targetAngle/2))*Scene.SCALE;
-		UI.getInstance().drawLine(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN);
+		UI.getInstance().drawLineWorld(bot.getPosition(),bot.getPosition().cpy().add(x,y), Color.GREEN,false);
 		
 		Steering steering = new Steering();
 		

@@ -7,4 +7,8 @@ package com.mygdx.engine;
  */
 public abstract class Script extends Component{
 	public abstract void start();
+	
+	public void destroy(){
+		
+	}
 }

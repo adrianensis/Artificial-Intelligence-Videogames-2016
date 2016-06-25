@@ -25,7 +25,7 @@ public class Renderer extends Component {
 	 * @param batch
 	 */
 	public void render(SpriteBatch batch) {	
-		UI.getInstance().drawRectangle(this.gameObject.getComponent(Transform.class).position, sprite.getWidth(), sprite.getWidth(), Color.BLUE);
+		UI.getInstance().drawRectangleWorld(this.gameObject.getComponent(Transform.class).position, sprite.getWidth(), sprite.getWidth(), Color.BLUE, false);
 		this.sprite.draw(batch);
 	}
 
@@ -51,6 +51,11 @@ public class Renderer extends Component {
 		this.sprite.setPosition(x -sprite.getWidth()/2, y-sprite.getHeight()/2);
 		
 		
+	}
+
+	@Override
+	public void destroy() {
+		this.texture.dispose();
 	}
 
 	

@@ -27,6 +27,8 @@ public class Scene {
 	
 	public static int SCALE;
 	
+	private int anonymousCounter;
+	
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
 	
@@ -44,8 +46,11 @@ public class Scene {
 	Matrix4 debugMatrix;
 	
 	private HashMap<String,GameObject> objects; // Los objetos van indexados por una clave para que sea facil recuperarlos.
+	private List<GameObject> newObjects; // lista para los nuevos objetos insertados.
+	private HashMap<String,GameObject> removables; // lista para los objetos que se quieren borrar.
 	
 	public Scene(String mapPath) {
+		this.anonymousCounter = 0;
 		this.camera = null;
 		this.batch = new SpriteBatch();
 		
@@ -64,7 +69,9 @@ public class Scene {
 		
 		SCALE = tilePixelHeight;
 		
+		this.newObjects = new LinkedList<GameObject>();
 		this.objects = new HashMap<String, GameObject>();
+		this.removables = new HashMap<String, GameObject>();
 		
 		//el engine contendra el World de Box2d
 		this.world = new World(new Vector2(0,0), false);
@@ -109,8 +116,41 @@ public class Scene {
 	 * @param object
 	 * @return
 	 */
-	public Scene addObject(String key, GameObject object) {
-		this.objects.put(key, object);
+	public Scene addObject(GameObject object) {
+		
+		newObjects.add(object);
+			
+		return this;
+	}
+	
+	private void addNewObject(GameObject object){
+		
+//		System.out.println("NEW " + object.getName());
+//		
+		String key = object.getName();
+		
+		if(key != null && !key.isEmpty())
+			this.objects.put(key, object);
+		else{
+			
+			/*
+			 * Esto sirve para meter objetos con clave nula o vacia y que no se machaquen.
+			 */
+			this.objects.put(Integer.toString(anonymousCounter), object);
+			anonymousCounter++;
+		}
+	}
+	
+	/**
+	 * Destruye un GameObject
+	 * @param object
+	 * @return
+	 */
+	public Scene removeObject(GameObject object) {
+		
+		object.destroy();
+		
+		this.removables.put(object.getName(), object);
 		return this;
 	}
 
@@ -219,7 +259,7 @@ public class Scene {
 	 */
 	public void start(){
 		
-       for (GameObject gameObject : objects.values()){
+       for (GameObject gameObject : newObjects){
     	   // Script
     	   List<Script> scripts = gameObject.getComponents(Script.class);
     	   if(!scripts.isEmpty()){
@@ -232,7 +272,11 @@ public class Scene {
     	   Collider col = gameObject.getComponent(Collider.class);
     	   if(col != null)
     		   col.start(this.world);
+    	   
+    	   this.addNewObject(gameObject);
        }
+       
+       this.newObjects.clear();
 
 	}
 	
@@ -240,12 +284,23 @@ public class Scene {
 	 * ACTUALIZA LA ESCENA
 	 */
 	public void update(){
+		
+		if( ! newObjects.isEmpty()){
+			this.start();
+		}
+		
 		UI.getInstance().setCamera(this.camera); // Pasamos la matriz de proyección a la clase UI
 
 		// Actualizamos cada objeto de la escena
 		for (GameObject gameObject : objects.values()){
-			gameObject.update();
+			if( ! removables.containsKey(gameObject.getName()))
+				gameObject.update();
       	}
+		
+		for (GameObject gameObject : removables.values()) {
+			objects.remove(gameObject.getName());
+		}
+		removables.clear();
        
 		// Actualizamos motor físico
 		world.step(Gdx.graphics.getDeltaTime(), 6,2);
@@ -278,17 +333,20 @@ public class Scene {
         this.batch.end();
         
         /*
+		 *DIBUJAMOS TEXTO
+		 */
+		UI.getInstance().renderTextCommands();
+        
+        /*
          * DIBUJAMOS LOS COMANDOS QUE QUEDAN
          */
         
         this.batch.begin();
+        UI.getInstance().renderWorldCommands();
         UI.getInstance().renderCommands();
         this.batch.end();
 		
-		/*
-		 * POR ULTIMO DIBUJAMOS TEXTO
-		 */
-		UI.getInstance().renderTextCommands();
+		
         
 //		debugRenderer.render(world, this.camera.combined);
 	}

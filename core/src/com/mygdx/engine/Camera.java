@@ -68,4 +68,10 @@ public class Camera extends Component {
 		this.camera.update();
 	}
 
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

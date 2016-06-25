@@ -24,11 +24,51 @@ import com.mygdx.ia.statemachine.Transition;
 
 public class BasicStateMachine extends StateMachine{
 	
-	private enum StateName{
-		WAIT, ATTACK, GOTO
+	public enum StateName{
+		WAIT, ATTACK, GOTO, PATROL
 	};
 	
 	private Map<StateName, State> states;
+	
+	private StateName currentState;
+	
+	public StateName getCurrentState(){
+		return currentState;
+	}
+	
+	/**
+	 * Asigna el path de patrulla a la unidad
+	 */
+	private void setPatrolPath(Unit unit){
+		Path path = new Path(0.5f*Scene.SCALE);
+		
+		BotScript bot = unit.getComponent(BotScript.class);
+		
+		Vector2 botPosition = bot.getPosition();
+
+		bot.clearSingleBehaviours();
+		
+		if( ! unit.getBase().getPatrolPath().isEmpty())
+			bot.addBehaviour(new PathFollowing(bot, unit.getBase().getPatrolPath(), 0f));
+	}
+	
+	private void checkNearEnemy(Unit unit){
+		List<Unit> units = Engine.getInstance().getCurrentScene().getGameObjectsWithClass(Unit.class);
+		
+		for (Unit u : units) {
+			
+			if(u.getTeam() != unit.getTeam()){
+				
+				Vector2 enemyPos= u.getComponent(Transform.class).position;
+				Vector2 pos = unit.getComponent(Transform.class).position;
+				
+				if(enemyPos.dst(pos) < unit.getRangeVision()){
+					unit.setTargetAttack(u);
+				}
+				
+			}
+		}
+	}
 	
 	
 	/**
@@ -64,6 +104,9 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+				
+				currentState = StateName.WAIT;
+				
 //				unit.clearTargetAttack();
 //				unit.setDestiny(null);
 				unit.getComponent(BotScript.class).clearSingleBehaviours();
@@ -74,6 +117,9 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+				
+				checkNearEnemy(unit);
+				
 				Vector2 pos = unit.getComponent(Transform.class).position;
 				float w = unit.getComponent(Renderer.class).getSprite().getWidth();
 				UI.getInstance().drawTextWorld("WAIT", pos.x-(w/2),pos.y-(1*Scene.SCALE), Color.BLUE);
@@ -90,6 +136,8 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+				currentState = StateName.ATTACK;
+				
 				unit.getComponent(BotScript.class).clearSingleBehaviours();
 			}
 		});
@@ -100,6 +148,8 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+				
+				currentState = StateName.GOTO;
 				
 				Path path = new Path(0.5f*Scene.SCALE);
 				
@@ -126,20 +176,73 @@ public class BasicStateMachine extends StateMachine{
 			
 			@Override
 			public void run() {
+				
+				checkNearEnemy(unit);
+				
 				Vector2 pos = unit.getComponent(Transform.class).position;
 				float w = unit.getComponent(Renderer.class).getSprite().getWidth();
 				UI.getInstance().drawTextWorld("GO", pos.x-(w/2),pos.y-(1*Scene.SCALE), Color.BLUE);
 			}
 		});
+		
+		// PATROL
+		State statePatrol = new State();
+		
+		statePatrol.setEntryAction(new Action() {
+			
+			@Override
+			public void run() {			
+				
+				currentState = StateName.PATROL;
+				
+				setPatrolPath(unit);
+			}
+		});
+		
+		statePatrol.setAction(new Action() {
+			
+			@Override
+			public void run() {
+				
+				checkNearEnemy(unit);
+				
+				boolean found = false;
+				
+				List<Behaviour> behaviours = unit.getComponent(BotScript.class).getBehaviours();
+				
+				for (Behaviour b : behaviours) {
+					
+					if(b instanceof PathFollowing){
+						
+						PathFollowing pf = (PathFollowing) b;
+						if(pf.getPath().isFinished()){
+							setPatrolPath(unit);
+						}
+						
+						found = true;
+						
+						break;
+					}
+				}
+				
+				if(!found){
+					setPatrolPath(unit);
+				}
+				
+				
+				Vector2 pos = unit.getComponent(Transform.class).position;
+				float w = unit.getComponent(Renderer.class).getSprite().getWidth();
+				UI.getInstance().drawTextWorld("PATROL", pos.x-(w/2),pos.y-(1*Scene.SCALE), Color.BLUE);
+
+			}
+		});
+		
+
 			
 		
 		/*
 		 * TRANSITIONS
 		 */
-		
-		
-		
-		
 		
 		// WAIT -> ATTACK
 		Transition waitToAttack = new Transition(stateAttack);
@@ -190,6 +293,18 @@ public class BasicStateMachine extends StateMachine{
 				
 				if(unit.getTargetAttack() == null)
 					return true;
+				else{
+					
+					// Si se sale del rango de vision
+					
+					Vector2 targetPos = unit.getTargetAttack().getComponent(Transform.class).position;
+					Vector2 pos = unit.getComponent(Transform.class).position;
+					
+					float dist = targetPos.dst(pos);
+					
+					if(dist > unit.getRangeVision())
+						return true;
+				}
 				
 				return unit.getTargetAttack().getLife() == 0|| unit.getLife() == 0;
 			}
@@ -284,6 +399,122 @@ public class BasicStateMachine extends StateMachine{
 		
 		
 		
+		// WAIT->PATROL
+		Transition waitToPatrol = new Transition(statePatrol);
+		
+		waitToPatrol.setCondition(new Condition() {
+			
+			
+			@Override
+			public boolean test() {
+				return unit.isPatrolBase();
+			}
+		});
+		
+//		waitToPatrol.setAction(new Action() {
+//			
+//			@Override
+//			public void run() {
+//				System.out.println("HOLA");
+//			}
+//		});
+		
+		stateWait.addTransition(waitToPatrol);
+		
+		// GOTO->PATROL
+		Transition gotoToPatrol = new Transition(statePatrol);
+		
+		gotoToPatrol.setCondition(new Condition() {
+			
+			
+			@Override
+			public boolean test() {
+				return unit.isPatrolBase();
+			}
+		});
+		
+		stateGoTo.addTransition(gotoToPatrol);
+		
+		// ATTACK->PATROL
+		Transition attackToPatrol = new Transition(statePatrol);
+		
+		attackToPatrol.setCondition(new Condition() {
+			
+			
+			@Override
+			public boolean test() {
+				return unit.isPatrolBase();
+			}
+		});
+		
+		stateAttack.addTransition(attackToPatrol);
+		
+		// PATROL->WAIT
+		Transition patrolToWait = new Transition(stateWait);
+		
+		patrolToWait.setCondition(new Condition() {
+			
+			@Override
+			public boolean test() {
+				return ! unit.isPatrolBase();
+			}
+		});
+		
+		patrolToWait.setAction(new Action() {
+			
+			@Override
+			public void run() {
+				unit.setPatrolBase(false);
+				
+			}
+		});
+		
+		statePatrol.addTransition(patrolToWait);
+		
+		// PATROL->ATTACK
+		Transition patrolToAttack = new Transition(stateAttack);
+		
+		patrolToAttack.setCondition(new Condition() {
+						
+			@Override
+			public boolean test() {
+				return unit.hasNewTargetAttack();
+			}
+		});
+		
+		patrolToAttack.setAction(new Action() {
+			
+			@Override
+			public void run() {
+				unit.setPatrolBase(false);
+				
+			}
+		});
+		
+		statePatrol.addTransition(patrolToAttack);
+		
+		// PATROL->GOTO
+		Transition patrolToGoto = new Transition(stateGoTo);
+		
+		patrolToGoto.setCondition(new Condition() {
+			
+			@Override
+			public boolean test() {
+				return unit.getDestiny() != null;
+			}
+		});
+		
+		patrolToGoto.setAction(new Action() {
+			
+			@Override
+			public void run() {
+				unit.setPatrolBase(false);
+				
+			}
+		});
+		
+		statePatrol.addTransition(patrolToGoto);
+		
 
 		/*
 		 * ADD STATES TO THE STATE MACHINE
@@ -296,10 +527,12 @@ public class BasicStateMachine extends StateMachine{
 		this.addInitialState(stateWait);
 		this.addState(stateAttack);
 		this.addState(stateGoTo);
+		this.addState(statePatrol);
 		
 		states.put(StateName.WAIT, stateWait);
 		states.put(StateName.ATTACK, stateAttack);
 		states.put(StateName.GOTO, stateGoTo);
+		states.put(StateName.PATROL, statePatrol);
 		
 	}
 	
@@ -313,6 +546,10 @@ public class BasicStateMachine extends StateMachine{
 	
 	public State getGotoState(){
 		return states.get(StateName.GOTO);
+	}
+	
+	public State getPatrolState(){
+		return states.get(StateName.PATROL);
 	}
 	
 }
