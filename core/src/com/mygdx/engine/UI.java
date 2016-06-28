@@ -59,7 +59,7 @@ public class UI {
     	FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("Hack-Regular.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
         parameter.size = 12; // TAMAÑO
-        parameter.characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!'()>?:;,-+*/_ []{}|@"; // CARACTERES QUE USAREMOS
+        parameter.characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!'()<>?:;,-+*/_ []{}|@"; // CARACTERES QUE USAREMOS
         // These characters should not repeat!
 
         font = generator.generateFont(parameter);

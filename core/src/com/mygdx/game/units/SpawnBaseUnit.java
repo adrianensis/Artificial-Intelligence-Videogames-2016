@@ -20,21 +20,23 @@ public class SpawnBaseUnit extends Unit {
 	private int lightCounter,heavyCounter,phantomCounter; // contador para cada tipo de unidad.
 	private Random random;
 	private int spawnCounter;
-	private boolean defenseSignal;
+	private boolean defenseSignal; // indica si se ha lanzado la señal de defensa de la base
 	
 	public SpawnBaseUnit(String key, int team, String textureName, Vector2 pos, int def) {
 		
-		super(key, team, textureName, 0, 0, 0, 0, pos, 0, 1000, 0, 5*Scene.SCALE, 0,null, 10, def);
+		super(key, team, textureName, 0, 0, 0, 0, pos, 0, 700, 0, 5*Scene.SCALE, 0,null, 10, def);
 				
-		this.spawnTime = 3;
+		this.spawnTime = 6;
 		this.defenseSignal = false;
+		
+		units = new LinkedList<Unit>();
 		
 		/*
 		 * PORCENTAJES DE UNIDADES
 		 */
-		int maxUnits = 15;
-		this.maxLight = (int)(maxUnits * 0.5); // 50% unidades ligeras
-		this.maxHeavy = (int)(maxUnits * 0.3); // 30% unidades pesadas
+		int maxUnits = 13;
+		this.maxLight = (int)(maxUnits * 0.4); // 40% unidades ligeras
+		this.maxHeavy = (int)(maxUnits * 0.4); // 40% unidades pesadas
 		this.maxPhantom = (int)(maxUnits * 0.2); // 20% unidades fantasma
 		
 		this.lightCounter = 0;
@@ -49,7 +51,6 @@ public class SpawnBaseUnit extends Unit {
 		this.random = new Random();
 		this.random.setSeed(1234);
 		
-		units = new LinkedList<Unit>();
 		
 		/*
 		 * Este script se encarga de actualizar.
@@ -57,7 +58,6 @@ public class SpawnBaseUnit extends Unit {
 		this.addComponent(new Script() {
 			
 			private SpawnBaseUnit base;
-			private Scene scene;
 			private long lastSpawnTime, lastRegenerationTime;
 			private boolean firstTime;
 			
@@ -109,7 +109,6 @@ public class SpawnBaseUnit extends Unit {
 			@Override
 			public void start() {
 				base = (SpawnBaseUnit)gameObject;
-				scene = Engine.getInstance().getCurrentScene();
 				lastSpawnTime = lastRegenerationTime = System.currentTimeMillis();
 				firstTime = true;
 
@@ -118,6 +117,35 @@ public class SpawnBaseUnit extends Unit {
 		
 	}
 	
+	
+	@Override
+	public void enableTotalWar() {
+		super.enableTotalWar();
+		
+		for (Unit unit : units) {
+			unit.enableTotalWar();
+			
+			
+			/*
+			 * Cuando se activa Total War, algunas unidades iran a atacar otras a defender.
+			 */
+			float rand = (float) Math.random();
+			
+			if(rand < 0.5)
+				unit.setMode(Mode.OFFENSIVE);
+			else 
+				unit.setMode(Mode.DEFENSIVE);
+		}
+	}
+	
+	@Override
+	public void disableTotalWar() {
+		super.disableTotalWar();
+		
+		for (Unit unit : units) {
+			unit.disableTotalWar();
+		}
+	}
 	
 	/**
 	 * Ordena a las unidades que pasen a modo defensivo
@@ -202,26 +230,37 @@ public class SpawnBaseUnit extends Unit {
 		}
 		
 		if(newUnit != null){
-			
-			// si la vida es menor que el 10%, las unidades spawneadas se quedan en la base
-			if(getLife() < (getMaxLife()*0.1)){
-				newUnit.setMode(Mode.NONE);
-			
-			// si no, si la vida es menor que 50% lo mandamos a defender
-			}else if(getLife() < (getMaxLife()*0.5)){
+
+			// Pero si estamos en modo total war, la base decide en que modo aparecen las unidades
+			if(isTotalWar()){
+				
+				newUnit.enableTotalWar();
+				
+				// si no, si la vida es menor que 50% lo mandamos a defender
+				if(getLife() < (getMaxLife()*0.5)){
 				newUnit.setMode(Mode.DEFENSIVE);
+					
+				// si no, aleatorio
+				}else{
+					
+					float rand = (float) Math.random();
+					
+					if(rand < 0.5)
+						newUnit.setMode(Mode.OFFENSIVE);
+					else if(rand < 0.9)
+						newUnit.setMode(Mode.DEFENSIVE);
+					else
+						newUnit.setPatrolBase(true);
+				}
 				
-			// si no, aleatorio
 			}else{
-				
 				float rand = (float) Math.random();
 				
-				if(rand < 0.5)
-					newUnit.setMode(Mode.OFFENSIVE);
-				else if(rand < 0.95)
-					newUnit.setMode(Mode.DEFENSIVE);
-				else
+				if(rand > 0 && rand < 0.1)
 					newUnit.setPatrolBase(true);
+				else 
+					newUnit.setMode(Mode.NONE);
+					
 			}
 			
 			

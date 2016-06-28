@@ -11,9 +11,8 @@ import com.mygdx.engine.Scene;
 import com.mygdx.engine.Script;
 import com.mygdx.engine.Transform;
 import com.mygdx.engine.UI;
-import com.mygdx.ia.Bot;
 import com.mygdx.game.Config;
-import com.mygdx.game.Waypoints;
+import com.mygdx.ia.Bot;
 
 public abstract class Unit extends Bot {
 	
@@ -31,6 +30,7 @@ public abstract class Unit extends Bot {
 	private Map<Integer, Integer> terrainMap;
 	private boolean patrolBase;
 	private Unit.Mode mode;
+	private boolean totalWar;
 
 	public Unit(String key, int team, String textureName, float speed, float accel, float ang_accel, int mass, Vector2 pos, float rot, 
 			float life, float rangeAttack, float rangeVision, float timeAttack, Map<Integer, Integer> terrainMap, int atk, int def) {
@@ -45,6 +45,7 @@ public abstract class Unit extends Bot {
 		this.targetAttack = null; // target al que atacar
 		this.lastTargetAttack = null; // ultimo target elegido, para comparar con el target actual
 		this.destiny = null; // destino al que llegar
+		this.totalWar = false;
 		
 		// ultima vez que la unidad atacó, ultima vez que la unidad se curó, ultima vez que la unidad hizo algo.
 		this.lastTimeAttack = lastTimeHealing = 0;
@@ -267,6 +268,17 @@ public abstract class Unit extends Bot {
 		this.mode = mode;
 	}
 
+	public boolean isTotalWar() {
+		return totalWar;
+	}
+	
+	public void enableTotalWar() {
+		this.totalWar = true;
+	}
+	
+	public void disableTotalWar() {
+		this.totalWar = false;
+	}
 
 	public abstract void onOffensive();
 	public abstract void onDefensive();
@@ -292,9 +304,9 @@ public abstract class Unit extends Bot {
 		
 		if(chance == 50){
 			//critico
-			attackValue = atk*2*FAD*FTA-otherUnit.def*FTD;
+			attackValue = (2*atk*FAD*FTA) - (otherUnit.def*FTD);
 		} else {
-			attackValue = FTA*atk - otherUnit.def*FTD;
+			attackValue = (atk*FAD*FTA) - (otherUnit.def*FTD);
 		}
 		
 		//en caso de que el ataque sea negativo se invierte el signo

@@ -41,6 +41,7 @@ public class BasicStateMachine extends StateMachine{
 	 */
 	private void setPatrolPath(Unit unit){
 		Path path = new Path(0.5f*Scene.SCALE);
+		path.setTeam(unit.getTeam());
 		
 		BotScript bot = unit.getComponent(BotScript.class);
 		
@@ -82,6 +83,7 @@ public class BasicStateMachine extends StateMachine{
 	 * @param unit
 	 */
 	public BasicStateMachine(final Unit unit){
+		
 		
 		states = new HashMap<StateName, State>();		
 
@@ -160,6 +162,7 @@ public class BasicStateMachine extends StateMachine{
 				// PATHFINDING
 				Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,unit.getDestiny(), unit.getTerrainMap());
 				path.setParams(pathfinding.generate());
+				path.setTeam(unit.getTeam());
 				
 //				bot.clearBehaviours(PathFollowing.class);
 				bot.clearSingleBehaviours();
@@ -528,6 +531,8 @@ public class BasicStateMachine extends StateMachine{
 		this.addState(stateAttack);
 		this.addState(stateGoTo);
 		this.addState(statePatrol);
+		
+		currentState = StateName.WAIT;
 		
 		states.put(StateName.WAIT, stateWait);
 		states.put(StateName.ATTACK, stateAttack);

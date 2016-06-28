@@ -10,7 +10,7 @@ import com.mygdx.game.Waypoints;
 public class PhantomUnit extends Unit {
 	//DA problemas para andar, no sale de la zona gris
 	public PhantomUnit(String key, int team, String textureName,Vector2 pos,Map<Integer, Integer> terrainMap) {
-		super(key, team,textureName, 1f*Scene.SCALE, 100*Scene.SCALE, 5f*Scene.SCALE, 1, pos, 10, 
+		super(key, team,textureName, 2f*Scene.SCALE, 100*Scene.SCALE, 5f*Scene.SCALE, 1, pos, 10, 
 				30, 1.5f*Scene.SCALE,5*Scene.SCALE, 0.5f,terrainMap,30,5);
 
 		this.addComponent(new Script() {

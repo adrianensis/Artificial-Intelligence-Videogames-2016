@@ -26,7 +26,7 @@ public class TacticStateMachine extends StateMachine {
 	
 	public TacticStateMachine(final Unit unit) {
 		
-		this.timeout = 3;
+		this.timeout = 5;
 		this.lastTime = 0;
 
 		/*
@@ -38,16 +38,55 @@ public class TacticStateMachine extends StateMachine {
 		
 		basicState.setStateMachine(new BasicStateMachine(unit));
 		
-		basicState.setEntryAction(new Action() {
+		basicState.setAction(new Action() {
 			
 			@Override
 			public void run() {
 				
 				/*
+				 * TIMEOUT: Cuando la unidad esta en estado WAIT más de 'timeout' segundos, pasa a modo OFFENSIVE.
+				 * 
+				 * Esto se hace para que no se quede ociosa para siempre.
+				 * 
+				 * La unidad toma esta decision de forma automatica, SIEMPRE Y CUANDO, estemos en modo total war.
+				 */
+				
+				long now = System.currentTimeMillis();
+				
+				/*
+				 * Si no estamos en total war, no dejamos avanzar al contador.
+				 */
+				if( ! unit.isTotalWar()){
+					lastTime = now;
+				}
+
+				if( unit.isTotalWar()  &&  (now-lastTime)/1000 > timeout){
+					
+					if(((BasicStateMachine)basicState.getStateMachine()).getCurrentState() == StateName.WAIT){
+								
+						unit.setMode(Mode.OFFENSIVE);
+						
+					}
+					
+					lastTime = now;
+				}
+			
+				
+			}
+		});
+		
+		basicState.setEntryAction(new Action() {
+			
+			@Override
+			public void run() {
+				
+				unit.setMode(Mode.NONE);
+				
+				/*
 				 * Cada vez que entramos a un estado nuevo, renovamos el contador del tiempo.
 				 */
-				long now = System.currentTimeMillis();
-				lastTime = now;
+//				long now = System.currentTimeMillis();
+//				lastTime = now;
 				
 			}
 		});
@@ -56,7 +95,7 @@ public class TacticStateMachine extends StateMachine {
 			
 			@Override
 			public void run() {
-				unit.setMode(Mode.NONE);
+//				unit.setMode(Mode.NONE);
 				
 			}
 		});
@@ -69,9 +108,9 @@ public class TacticStateMachine extends StateMachine {
 			@Override
 			public void run() {
 				
-				long now = System.currentTimeMillis();
-				lastTime = now;
-				
+//				long now = System.currentTimeMillis();
+//				lastTime = now;
+								
 				unit.onOffensive();
 				
 			}
@@ -85,8 +124,8 @@ public class TacticStateMachine extends StateMachine {
 			@Override
 			public void run() {
 				
-				long now = System.currentTimeMillis();
-				lastTime = now;
+//				long now = System.currentTimeMillis();
+//				lastTime = now;
 				
 				unit.onDefensive();
 				
@@ -101,8 +140,8 @@ public class TacticStateMachine extends StateMachine {
 			@Override
 			public void run() {
 				
-				long now = System.currentTimeMillis();
-				lastTime = now;
+//				long now = System.currentTimeMillis();
+//				lastTime = now;
 				
 			}
 		});
@@ -111,6 +150,7 @@ public class TacticStateMachine extends StateMachine {
 			
 			@Override
 			public void run() {
+				
 				Vector2 pos = unit.getComponent(Transform.class).position;
 				float w = unit.getComponent(Renderer.class).getSprite().getWidth();
 				UI.getInstance().drawTextWorld("RUNAWAY!", pos.x-(w/2),pos.y-(1*Scene.SCALE), Color.BLUE);
@@ -136,6 +176,7 @@ public class TacticStateMachine extends StateMachine {
 				// PATHFINDING
 				Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,unit.getDestiny(), unit.getTerrainMap());
 				path.setParams(pathfinding.generate());
+				path.setTeam(unit.getTeam());
 				
 //				bot.clearBehaviours(PathFollowing.class);
 				bot.clearSingleBehaviours();
@@ -166,21 +207,11 @@ public class TacticStateMachine extends StateMachine {
 			@Override
 			public boolean test() {
 				
-				long now = System.currentTimeMillis();
-				
-				if((now-lastTime)/1000 > timeout){
-					
-					if(((BasicStateMachine)basicState.getStateMachine()).getCurrentState() == StateName.WAIT){
-						lastTime = now;
-						
-						return true;
-						
-					}
-				}
-				
+
 				return unit.getMode() == Mode.OFFENSIVE;
 			}
 		});
+
 		
 		basicState.addTransition(basicToOffensive);
 		
@@ -205,7 +236,7 @@ public class TacticStateMachine extends StateMachine {
 			@Override
 			public boolean test() {
 				// si nuestra vida es baja
-				return unit.getLife() < unit.getMaxLife()*0.5;
+				return unit.getLife() < unit.getMaxLife()*0.2;
 			}
 		});
 		
@@ -255,10 +286,10 @@ public class TacticStateMachine extends StateMachine {
 		
 		defensiveState.addTransition(defensiveToBasic);
 		
-		//RUNAWAY -> BASIC
-		Transition runawayToBasic = new Transition(basicState);
+		//RUNAWAY -> OFFENSIVE
+		Transition runawayToOffensive = new Transition(offensiveState);
 		
-		runawayToBasic.setCondition(new Condition() {
+		runawayToOffensive.setCondition(new Condition() {
 			
 			@Override
 			public boolean test() {
@@ -268,7 +299,7 @@ public class TacticStateMachine extends StateMachine {
 			}
 		});
 		
-		runawayToBasic.setAction(new Action() {
+		runawayToOffensive.setAction(new Action() {
 			
 			@Override
 			public void run() {
@@ -277,7 +308,7 @@ public class TacticStateMachine extends StateMachine {
 			}
 		});
 		
-		runAwayState.addTransition(runawayToBasic);
+		runAwayState.addTransition(runawayToOffensive);
 		
 		
 		

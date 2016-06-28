@@ -45,28 +45,33 @@ public class GameController extends Script {
 	private UI ui;
 	private List<UnitGroup> groups;
 	
+	private SpawnBaseUnit base0,base1;
+	
 	private float top;
 	private float deltaCam;
 	private float deltaZoom;
-	private long lastTick;
 	private boolean showInfo;
-	
+	private int winner;
 	
 	
 	@Override
 	public void start() {
 		
+		winner = -1;
 		showInfo = false;
 		deltaCam = 4;
 		deltaZoom = 0.1f;
 		top = Gdx.graphics.getHeight()-10;
-		lastTick = System.currentTimeMillis();
-						
-		// COGEMOS EL ui PARA NO TENER QUE COGERLO CADA UPDATE
-		ui = UI.getInstance();
 		
 		// OBTENEMOS LA ESCENA ACTUAL PARA PODER BUSCAR GAME OBJECTS (usar la funcion find)
 		scene = Engine.getInstance().getCurrentScene(); 
+		
+		// BASES
+		base0 = (SpawnBaseUnit) scene.find("base0");
+		base1 = (SpawnBaseUnit) scene.find("base1");
+						
+		// COGEMOS EL ui PARA NO TENER QUE COGERLO CADA UPDATE
+		ui = UI.getInstance();
 		
 		selectedGroup = new LinkedList<Unit>();
 		groups = new LinkedList<UnitGroup>();
@@ -94,53 +99,84 @@ public class GameController extends Script {
 	@Override
 	public void update() {
 		
-		drawInfo();
+		/*
+		 * Cada update comprueba las condiciones de victoria.
+		 */
+		checkVictory();
 		
-		long now = System.currentTimeMillis();
-		
-//		if((now-lastTick) > 50){
 	
-			if(Gdx.input.isKeyJustPressed(Input.Keys.D))
-				debugOnOff();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.I))
-				showInfo = ! showInfo;
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
-				clearSelected();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.G))
-				formationGroup();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.F))
-				flockingGroup();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.S))
-				splitGroup();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.TAB))
-				tab();
-			else if(Gdx.input.isButtonPressed(Input.Buttons.LEFT))
-				leftClick();
-			else if(Gdx.input.isButtonPressed(Input.Buttons.RIGHT))
-				rightClick();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.PLUS))
-				zoom(-deltaZoom);
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.MINUS))
-				zoom(deltaZoom);
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.UP))
-				moveCamera(0,deltaCam);
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN))
-				moveCamera(0,-deltaCam);
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
-				moveCamera(-deltaCam,0);
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
-				moveCamera(deltaCam,0);
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1))
-				offensive();
-			else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2))
-				defensive();
-		
-			lastTick = now;
-//		}
-		
-		
+		/*
+		 * Procesa el input
+		 */
+		if(Gdx.input.isKeyJustPressed(Input.Keys.D))
+			debugOnOff();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.I))
+			showInfo = ! showInfo;
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE))
+			clearSelected();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.G))
+			formationGroup();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.F))
+			flockingGroup();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.S))
+			splitGroup();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.TAB))
+			tab();
+		else if(Gdx.input.isButtonPressed(Input.Buttons.LEFT))
+			leftClick();
+		else if(Gdx.input.isButtonPressed(Input.Buttons.RIGHT))
+			rightClick();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.PLUS))
+			zoom(-deltaZoom);
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.MINUS))
+			zoom(deltaZoom);
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.UP))
+			moveCamera(0,deltaCam);
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.DOWN))
+			moveCamera(0,-deltaCam);
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.LEFT))
+			moveCamera(-deltaCam,0);
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.RIGHT))
+			moveCamera(deltaCam,0);
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_1))
+			offensive();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2))
+			defensive();
+		else if(Gdx.input.isKeyJustPressed(Input.Keys.T))
+			totalWar();
 
 		
+		drawInfo();
+	}
+	
+	/**
+	 * Comprueba si se ha llegado a condiciones de victoria.
+	 */
+	private void checkVictory(){
+		
+		
+		
+		if(base0.getLife() == 0){
+			
+			winner = 1;
+			for (GameObject obj : scene.getGameObjectsWithClass(Unit.class)) {
+				scene.removeObject(obj);
+			}
+			
+		}else if(base1.getLife() == 0){
+			
+			winner = 0;
+			for (GameObject obj : scene.getGameObjectsWithClass(Unit.class)) {
+				scene.removeObject(obj);
+			}
+			
+		}
+		
+		if(winner > -1){
+			
+			
+			ui.drawText("TEAM " + winner + " WINS", 100,200, Color.WHITE);
+		}
 	}
 	
 	/**
@@ -325,6 +361,7 @@ public class GameController extends Script {
 		float lineY = top;
 		
 		if(showInfo){
+			ui.drawText("> Press 'I' to HIDE info", 10, lineY, Color.WHITE); lineY-=40;
 			ui.drawText("> Press 'D' to enable/disable the DEBUG RENDER", 10, lineY, Color.WHITE); lineY-=20;
 			ui.drawText("> Press 'Right Click' to select a DESTINY or ATTACK a target or PATROL a base", 10, lineY, Color.WHITE); lineY-=20;
 			ui.drawText("> Press 'Left Click' to SELECT an unit", 10, lineY, Color.WHITE); lineY-=20;
@@ -334,6 +371,7 @@ public class GameController extends Script {
 			ui.drawText("> Press 'TAB' to switch to the next unit", 10, lineY, Color.WHITE); lineY-=20;
 			ui.drawText("> Press '1' to set unit in OFFENSIVE MODE", 10, lineY, Color.WHITE); lineY-=20;
 			ui.drawText("> Press '2' to set unit in DEFENSIVE MODE", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'T' to enable << TOTAL WAR >>", 10, lineY, Color.WHITE); lineY-=20;
 			
 			
 			lineY-=20;
@@ -345,7 +383,7 @@ public class GameController extends Script {
 				
 			}
 		}else{
-			ui.drawText("> Press 'I' to SHOW/HIDE info", 10, top, Color.WHITE);
+			ui.drawText("> Press 'I' to SHOW info", 10, top, Color.WHITE);
 		}
 		
 		
@@ -552,6 +590,23 @@ public class GameController extends Script {
 			groups.remove(unit.getGroup());
 			Engine.getInstance().getCurrentScene().removeObject(unit.getGroup());
 		}
+	}
+	
+	/*
+	 * Activa/Desactiva el modo Total War
+	 */
+	private void totalWar(){
+		
+		
+		if(base0.isTotalWar())
+			base0.disableTotalWar();
+		else
+			base0.enableTotalWar();
+		
+		if(base1.isTotalWar())
+			base1.disableTotalWar();
+		else
+			base1.enableTotalWar();
 	}
 	
 	

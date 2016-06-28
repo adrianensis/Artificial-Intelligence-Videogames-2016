@@ -17,6 +17,7 @@ public class Path {
 	private ArrayList<Boolean> visited;
 	private float radius; // Radio de llegada a cada punto
 	private boolean finished;
+	Color team = null;
 
 	public Path(float radius) {
 		this.params = new ArrayList<Vector2>();
@@ -87,11 +88,24 @@ public class Path {
 		return this.params.isEmpty();
 	}
 	
+	
+	public void setTeam(int i){
+		if (i==0){
+			team=Color.BLUE;
+		} else{
+			team=Color.RED;
+		}
+	}
+	
 	/*
 	 * Funcion para renderizar el camino.
 	 * Usa la clase UI.
 	 */
 	public void render(){
+		
+		if (team == null){
+			team=Color.RED;
+		}
 		
 		if( ! this.params.isEmpty()){
 			UI.getInstance().drawCircleWorld(this.params.get(0), 2,Color.GREEN,false);
@@ -99,7 +113,7 @@ public class Path {
 			Vector2 last = this.params.get(0);
 			
 			for (int i = 1; i < this.params.size(); i++) {
-				UI.getInstance().drawLineWorld(last, this.params.get(i), Color.RED,false);
+				UI.getInstance().drawLineWorld(last, this.params.get(i), team,false);
 				last = this.params.get(i);
 			}
 			

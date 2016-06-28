@@ -16,23 +16,44 @@ public class Config {
 	
 	// mapa de unidad a tabla de terreno
 	private HashMap<Class, Map<Integer, Integer>> map;
+	
 	// mapa de unidad a entero
 	private HashMap<Class, Integer> unitToInt;
+	
 	// mapa de tileID a tabla
 	private HashMap<Integer, Integer> tileToInt;
+	
+	
 	// 			LightUnit HeavyUnit PhantomUnit
 	// LightUnit 1 			0.5 		2
 	// HeavyUnit 1.5 		1   		1.5
 	// PhantomUnit 1.25	    1.5			1
 	private float[][] FAD = { { 1, 0.5f,2 }, { 1.5f, 1,1.5f },{1.25f,1.5f,1} };
+	
+	
 	// 			LightUnit HeavyUnit PhantomUnit
-	// TileGris 	1 		2			2
-	// TileVerde 	1.5 	0.5			2
-	private float[][] FTA = { { 1, 2,2 }, { 1.5f, 0.5f,2 } };
+	// TileGris 	1 		2			1
+	// TileVerde 	1.5 	4			2
+	// TileNaranjaBase 1     2          1
+	// TileNaranjaPuente 1   2          1
+	// TileMoradoBase 1		 2			1
+	// TileMoradoPuente 1	 2			1
+	// TileArbolRedondo 2	 1			1
+	// TileArbolRedondoAzul 2	1		1
+	private float[][] FTA = { {1,2,1}, {1.5f,4,2}, {1,2,1}, {1,2,1}, {1,2,1}, {1,2,1}, {2,1,1}, {2,1,1} };
+	
+	
 	// 			LightUnit HeavyUnit PhantomUnit
 	// TileGris 0.5 			1		1
-	// TileVerde 1			 	1.5		1
-	private float[][] FTD = { { 0.5f, 1,1 }, { 1, 1.5f,1 } };
+	// TileVerde 1			 	3		1
+	// TileNaranjaBase 2     1          1
+	// TileNaranjaPuente 2   1          1
+	// TileMoradoBase 2		 1			1
+	// TileMoradoPuente 2	 1			1
+	// TileArbolRedondo 1	 2			1
+	// TileArbolRedondoAzul 1	2		1
+	private float[][] FTD = { {0.5f,1,1}, {1,3,1}, {2,1,1}, {2,1,1}, {2,1,1}, {2,1,1}, {1,2,1}, {1,2,2} };
+
 
 	private Config() {
 		createUnitToInt();
@@ -53,6 +74,18 @@ public class Config {
 		tileToInt.put(178, 0);
 		// tile verde
 		tileToInt.put(6, 1);
+		// tile naranja base
+		tileToInt.put(1060, 2);
+		// tile naranja puente
+		tileToInt.put(1087, 3);
+		// tile morado base
+		tileToInt.put(1201, 4);
+		// tile morado puente
+		tileToInt.put(1258, 5);
+		// tile arbol redondo
+		tileToInt.put(527, 6);
+		// tile arbol redondo azul
+		tileToInt.put(529, 7);
 	}
 
 	private void createUnitMoveMap() {

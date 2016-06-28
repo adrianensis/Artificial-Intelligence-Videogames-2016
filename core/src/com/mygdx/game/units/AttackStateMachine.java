@@ -34,6 +34,7 @@ public class AttackStateMachine extends StateMachine {
 		// PATHFINDING
 		Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), unit, botPosition ,targetPostition, unit.getTerrainMap());
 		path.setParams(pathfinding.generate());
+		path.setTeam(unit.getTeam());
 
 		
 		if( ( ! path.isEmpty()) && ( ! pathfinding.destinyUnreachable())){
