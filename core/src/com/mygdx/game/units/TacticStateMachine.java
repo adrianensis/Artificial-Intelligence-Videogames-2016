@@ -286,7 +286,7 @@ public class TacticStateMachine extends StateMachine {
 		
 		defensiveState.addTransition(defensiveToBasic);
 		
-		//RUNAWAY -> OFFENSIVE
+		//RUNAWAY -> BASIC
 		Transition runawayToOffensive = new Transition(offensiveState);
 		
 		runawayToOffensive.setCondition(new Condition() {

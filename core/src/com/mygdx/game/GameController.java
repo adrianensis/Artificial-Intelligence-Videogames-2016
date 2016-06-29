@@ -371,7 +371,7 @@ public class GameController extends Script {
 			ui.drawText("> Press 'TAB' to switch to the next unit", 10, lineY, Color.WHITE); lineY-=20;
 			ui.drawText("> Press '1' to set unit in OFFENSIVE MODE", 10, lineY, Color.WHITE); lineY-=20;
 			ui.drawText("> Press '2' to set unit in DEFENSIVE MODE", 10, lineY, Color.WHITE); lineY-=20;
-			ui.drawText("> Press 'T' to enable << TOTAL WAR >>", 10, lineY, Color.WHITE); lineY-=20;
+			ui.drawText("> Press 'T' to enable/disable << TOTAL WAR >>", 10, lineY, Color.WHITE); lineY-=20;
 			
 			
 			lineY-=20;
