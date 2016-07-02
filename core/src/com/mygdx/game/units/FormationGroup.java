@@ -39,6 +39,7 @@ public class FormationGroup extends UnitGroup {
 	@Override
 	public void join() {
 		fm.updateSlots();
+		super.split();
 	}
 
 	@Override
@@ -66,9 +67,6 @@ public class FormationGroup extends UnitGroup {
 	@Override
 	public void updateGroup() {
 		super.updateGroup();
-//		this.fm.updateSlots();
-				
-		
 	}
 	
 	

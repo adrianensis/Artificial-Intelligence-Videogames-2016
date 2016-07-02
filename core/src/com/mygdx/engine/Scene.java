@@ -34,6 +34,8 @@ public class Scene {
 	
 	private World world;
 	
+	public String sceneName;
+	
 	private TiledMap tiledMap;
 	private OrthogonalTiledMapRenderer tiledMapRenderer;
 	
@@ -49,7 +51,8 @@ public class Scene {
 	private List<GameObject> newObjects; // lista para los nuevos objetos insertados.
 	private HashMap<String,GameObject> removables; // lista para los objetos que se quieren borrar.
 	
-	public Scene(String mapPath) {
+	public Scene(String mapPath,String sceneName) {
+		this.sceneName=sceneName;
 		this.anonymousCounter = 0;
 		this.camera = null;
 		this.batch = new SpriteBatch();
@@ -350,4 +353,13 @@ public class Scene {
         
 //		debugRenderer.render(world, this.camera.combined);
 	}
+
+	public String getSceneName() {
+		return sceneName;
+	}
+
+	public void setSceneName(String sceneName) {
+		this.sceneName = sceneName;
+	}
+	
 }

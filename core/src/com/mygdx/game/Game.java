@@ -17,7 +17,11 @@ import com.mygdx.game.units.HeavyUnit;
 import com.mygdx.game.units.LightUnit;
 import com.mygdx.game.units.PhantomUnit;
 import com.mygdx.game.units.SpawnBaseUnit;
+import com.mygdx.game.units.TestUnit;
 import com.mygdx.game.units.Unit;
+import com.mygdx.ia.Bot;
+import com.mygdx.ia.BotScript;
+import com.mygdx.ia.behaviours.basic.WanderU;
 
 public class Game extends ApplicationAdapter {
 		
@@ -25,8 +29,8 @@ public class Game extends ApplicationAdapter {
 	public void create () {
 		
 		// Creamos una escena con un mapa.
-		Engine.getInstance().setCurrentScene(new Scene("map.tmx"));
-		
+		Engine.getInstance().setCurrentScene(new Scene("map.tmx","game"));
+		Engine.getInstance().addScene(new Scene("map.tmx","test"));
 //		createPlayer("bot00", new Vector2(13*Scene.SCALE,74*Scene.SCALE));
 		
 		// Creamos Bots 
@@ -38,18 +42,8 @@ public class Game extends ApplicationAdapter {
 //		createBot("bot5", new Vector2(12*Scene.SCALE,65*Scene.SCALE), 0);
 //		createPhantom("bot6", new Vector2(11*Scene.SCALE,62*Scene.SCALE), 1);
 //		createPhantom("bot7", new Vector2(15*Scene.SCALE,70*Scene.SCALE), 0);
-		
-		createBase("base0", new Vector2(10*Scene.SCALE,70*Scene.SCALE), 0);
-		
-		createBase("base1", new Vector2(70*Scene.SCALE,22*Scene.SCALE), 1);
-		
-		// Creamos una camara para la escena, llamada cam.
-		createCam("cam");
-		
-		
-		createController("controller");
-		
-		createMiniMap("map");
+		prepareGame();
+		prepareTest();
 		
 		// Inicializamos
 		Engine.getInstance().start();
@@ -61,6 +55,22 @@ public class Game extends ApplicationAdapter {
 		Engine.getInstance().render();
 	}
 	
+	
+	public void prepareGame() {
+		createBase("base0", new Vector2(10*Scene.SCALE,70*Scene.SCALE), 0);
+		createBase("base1", new Vector2(70*Scene.SCALE,22*Scene.SCALE), 1);
+		// Creamos una camara para la escena, llamada cam.
+		createCam("cam","game");
+		createController("controller","game");
+		createMiniMap("map");
+	}
+
+	public void prepareTest(){
+		createTestBot();
+		createCam("cam","test");
+		createController("controller","test");
+	}
+
 	/**
 	 * 
 	 * 
@@ -87,7 +97,7 @@ public class Game extends ApplicationAdapter {
 	 * Funcion para crear una camara.
 	 * @param key
 	 */
-	public void createCam(String key){
+	public void createCam(String key,final String sceneName){
 			
 		GameObject obj = new GameObject(key);
 		obj.addComponent(new Transform());
@@ -105,7 +115,7 @@ public class Game extends ApplicationAdapter {
 			@Override
 			public void start() {
 				
-				Scene currentScene = Engine.getInstance().getCurrentScene();
+				Scene currentScene = Engine.getInstance().getScene(sceneName);
 				//TODO LIMITES DE LA CAMARA
 				this.gameObject.getComponent(Transform.class).setLimits(
 						0, 
@@ -124,22 +134,33 @@ public class Game extends ApplicationAdapter {
 			}
 		});
 		
-		Engine.getInstance().getCurrentScene().setCamera(obj); // Seleccionamos esta camara como la camara a usar en nuestra escena.
-		Engine.getInstance().getCurrentScene().addObject(obj); // AÃ±adimos la camara la primera, para que se actualize antes que los sprites.
+		Engine.getInstance().getScene(sceneName).setCamera(obj); // Seleccionamos esta camara como la camara a usar en nuestra escena.
+		Engine.getInstance().getScene(sceneName).addObject(obj); // AÃ±adimos la camara la primera, para que se actualize antes que los sprites.
 	}
 	
 	/**
 	 * Crea un controlador del juego.
 	 * @param key
 	 */
-	public void createController(String key){
+	public void createController(String key,String sceneName){
 		
 		GameObject obj = new GameObject(key);
 		
 		// Logica del controlador
 		obj.addComponent(new GameController());
 		
-		Engine.getInstance().getCurrentScene().addObject(obj);
+		Engine.getInstance().getScene(sceneName).addObject(obj);
+	}
+	
+	public void createTestBot(){
+		
+		String textureName = "yoshi.png";
+		Vector2 pos =new Vector2(10*Scene.SCALE,70*Scene.SCALE);
+		Unit bot = new TestUnit("testUnit", 0, textureName, pos, Config.getInstacia().getUnitMap(LightUnit.class));
+//		bot.getComponent(BotScript.class).addBehaviour(new Persue(bot.getComponent(BotScript.class), Engine.getInstance().getCurrentScene().find("player").getComponent(BotScript.class), 5f));
+		
+	
+		Engine.getInstance().getScene("test").addObject(bot);
 	}
 		
 	
@@ -254,4 +275,6 @@ public class Game extends ApplicationAdapter {
 		
 		Engine.getInstance().getCurrentScene().addObject(obj);
 	}
+	
+
 }
