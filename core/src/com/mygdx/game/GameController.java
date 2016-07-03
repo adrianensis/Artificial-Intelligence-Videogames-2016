@@ -24,16 +24,35 @@ import com.mygdx.game.units.HeavyUnit;
 import com.mygdx.game.units.LightUnit;
 import com.mygdx.game.units.PhantomUnit;
 import com.mygdx.game.units.SpawnBaseUnit;
+import com.mygdx.game.units.TestUnit;
 import com.mygdx.game.units.Unit;
 import com.mygdx.game.units.Unit.Mode;
 import com.mygdx.game.units.UnitGroup;
 import com.mygdx.ia.Bot;
 import com.mygdx.ia.BotScript;
 import com.mygdx.ia.Heuristic;
+import com.mygdx.ia.Path;
 import com.mygdx.ia.Pathfinding;
 import com.mygdx.ia.PathfindingConfig;
-import com.mygdx.ia.behaviours.basic.*;
-import com.mygdx.ia.behaviours.delgate.*;
+import com.mygdx.ia.behaviours.basic.AlignUA;
+import com.mygdx.ia.behaviours.basic.AntiAlignUA;
+import com.mygdx.ia.behaviours.basic.ArriveU;
+import com.mygdx.ia.behaviours.basic.ArriveUA;
+import com.mygdx.ia.behaviours.basic.FleeU;
+import com.mygdx.ia.behaviours.basic.FleeUA;
+import com.mygdx.ia.behaviours.basic.SeekU;
+import com.mygdx.ia.behaviours.basic.SeekUA;
+import com.mygdx.ia.behaviours.basic.WanderU;
+import com.mygdx.ia.behaviours.delgate.Evade;
+import com.mygdx.ia.behaviours.delgate.Face;
+import com.mygdx.ia.behaviours.delgate.LookWhereYouGoing;
+import com.mygdx.ia.behaviours.delgate.ObstacleAvoidance;
+import com.mygdx.ia.behaviours.delgate.PathFollowing;
+import com.mygdx.ia.behaviours.delgate.Persue;
+import com.mygdx.ia.behaviours.delgate.Wander;
+import com.mygdx.ia.behaviours.group.Attraction;
+import com.mygdx.ia.behaviours.group.Cohesion;
+import com.mygdx.ia.behaviours.group.Separation;
 
 /**
  * Script principal que llevará toda la lógica del juego.
@@ -48,7 +67,6 @@ public class GameController extends Script {
 	private Scene scene;
 	private UI ui;
 	private List<UnitGroup> groups;
-	
 	
 	private SpawnBaseUnit base0,base1;
 	
@@ -92,7 +110,7 @@ public class GameController extends Script {
 		config.bindHeuristic(LightUnit.class, Heuristic.EUCLIDEAN);
 		config.bindHeuristic(PhantomUnit.class, Heuristic.MANHATTAN); 
 		config.bindHeuristic(HeavyUnit.class, Heuristic.CHEBYCHEV); 
-		
+		config.bindHeuristic(TestUnit.class, Heuristic.EUCLIDEAN);
 		Pathfinding.setConfig(config);
 		
 		/*
@@ -115,8 +133,58 @@ public class GameController extends Script {
 		/*
 		 * Procesa el input
 		 */
-		if(Gdx.input.isKeyJustPressed(Input.Keys.D))
-			debugOnOff();
+		if(Gdx.input.isKeyJustPressed(Input.Keys.D)){
+			if(!Engine.getInstance().getCurrentScene().getSceneName().equals("test"))
+					debugOnOff();
+		}
+		else if(Gdx.input.isKeyPressed(Input.Keys.D)){
+			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
+				Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+				Vector2 pos = player.getComponent(Transform.class).position.cpy();
+				pos.x+=1;
+				player.getComponent(Transform.class).position=pos;
+			} 
+		}
+		else if(Gdx.input.isKeyPressed(Input.Keys.A)){
+			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
+				Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+				Vector2 pos = player.getComponent(Transform.class).position.cpy();
+				pos.x-=1;
+				player.getComponent(Transform.class).position=pos;
+			} 
+		}
+		else if(Gdx.input.isKeyPressed(Input.Keys.S)){
+			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
+				Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+				Vector2 pos = player.getComponent(Transform.class).position.cpy();
+				pos.y-=1;
+				player.getComponent(Transform.class).position=pos;
+			} 
+		}
+		else if(Gdx.input.isKeyPressed(Input.Keys.Q)){
+			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
+				Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+				Float ori = player.getComponent(Transform.class).orientation;
+				ori+=1;
+				player.getComponent(Transform.class).orientation=ori;
+			} 
+		}
+		else if(Gdx.input.isKeyPressed(Input.Keys.E)){
+			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
+				Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+				Float ori = player.getComponent(Transform.class).orientation;
+				ori-=1;
+				player.getComponent(Transform.class).orientation=ori;
+			} 
+		}
+		else if(Gdx.input.isKeyPressed(Input.Keys.W)){
+			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
+				Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+				Vector2 pos = player.getComponent(Transform.class).position.cpy();
+				pos.y+=1;
+				player.getComponent(Transform.class).position=pos;
+			} 
+		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.I)){
 			showInfo = ! showInfo;
 		}
@@ -151,29 +219,29 @@ public class GameController extends Script {
 				if(behaviour == 0){
 					behaviour = 1;
 				} else if(behaviour == 1){
-					//TODO no funciona
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new AlignUA(bot.getComponent(BotScript.class), bs, 30f, 20f, 5f));
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new AlignUA(bot.getComponent(BotScript.class), player.getComponent(BotScript.class), 30f, 20f, 5f));
 				}else if(behaviour == 2){
-					//TODO no funciona y salta excepcion
+					Bot bot = (Bot)selected;
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					bot.getComponent(BotScript.class).addBehaviour(new Wander(bot.getComponent(BotScript.class), 15, 5, 5f, 2, 2, 1, 2));	
+				
+					}else{//behaviour == 3
 					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new CollisionAvoidance(bot.getComponent(BotScript.class), 30f*Scene.SCALE, 30f));
-				}else{//behaviour == 3
-					
+					Bot bot2 = (Bot) Engine.getInstance().getCurrentScene().find("group1");
+					bot2.getComponent(BotScript.class).clearAllBehaviours();
+					Bot bot3 = (Bot) Engine.getInstance().getCurrentScene().find("group2");
+					bot3.getComponent(BotScript.class).clearAllBehaviours();
+					LinkedList<BotScript> lista = new LinkedList<BotScript>();
+					lista.add(bot.getComponent(BotScript.class));
+					lista.add(bot2.getComponent(BotScript.class));
+					lista.add(bot3.getComponent(BotScript.class));
+					bot.getComponent(BotScript.class).addBehaviour(new Attraction(bot.getComponent(BotScript.class), lista, 10*Scene.SCALE,2*Scene.SCALE));
+					bot2.getComponent(BotScript.class).addBehaviour(new Attraction(bot2.getComponent(BotScript.class), lista, 10*Scene.SCALE,2*Scene.SCALE));
+					bot3.getComponent(BotScript.class).addBehaviour(new Attraction(bot3.getComponent(BotScript.class), lista, 10*Scene.SCALE,2*Scene.SCALE));
 				}
 			}else {
 			offensive();
@@ -181,24 +249,34 @@ public class GameController extends Script {
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				//TODO no funciona
 				if(behaviour == 0){
 					behaviour = 2;
 				} else if(behaviour == 1){
+					Bot bot = (Bot)selected;
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new AntiAlignUA(bot.getComponent(BotScript.class), player.getComponent(BotScript.class), 30f, 20f, 5f));
+				}else if(behaviour == 2){
+					Bot bot = (Bot)selected;
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new Face(bot.getComponent(BotScript.class), player.getComponent(BotScript.class), 15, 5, 3f));
+				}else{//behaviour == 3
 					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new AntiAlignUA(bot.getComponent(BotScript.class), bs, 30f, 20f, 5f));
-				}else if(behaviour == 2){
-					
-				}else{//behaviour == 3
-					
-				}
+					Bot bot2 = (Bot) Engine.getInstance().getCurrentScene().find("group1");
+					bot2.getComponent(BotScript.class).clearAllBehaviours();
+					Bot bot3 = (Bot) Engine.getInstance().getCurrentScene().find("group2");
+					bot3.getComponent(BotScript.class).clearAllBehaviours();
+					LinkedList<BotScript> lista = new LinkedList<BotScript>();
+					lista.add(bot.getComponent(BotScript.class));
+					lista.add(bot2.getComponent(BotScript.class));
+					lista.add(bot3.getComponent(BotScript.class));
+					bot.getComponent(BotScript.class).addBehaviour(new Cohesion(bot.getComponent(BotScript.class), lista,10*Scene.SCALE));
+					bot2.getComponent(BotScript.class).addBehaviour(new Cohesion(bot2.getComponent(BotScript.class), lista,10*Scene.SCALE));
+					bot3.getComponent(BotScript.class).addBehaviour(new Cohesion(bot3.getComponent(BotScript.class), lista,10*Scene.SCALE));
+				
+					}
 			}else {
 			defensive();
 			}
@@ -208,176 +286,115 @@ public class GameController extends Script {
 				if(behaviour == 0){
 					behaviour = 3;
 				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new ArriveU(bot.getComponent(BotScript.class),bs,1*Scene.SCALE,5f));
-				
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new ArriveU(bot.getComponent(BotScript.class),player.getComponent(BotScript.class),1*Scene.SCALE,5f));
 				}else if(behaviour == 2){
-					//TODO no funciona
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1*Scene.SCALE, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new Evade(bot.getComponent(BotScript.class), bs, 5));
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new Evade(bot.getComponent(BotScript.class),player.getComponent(BotScript.class), 5));
 				
 				}else{//behaviour == 3
-					
+					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					Bot bot2 = (Bot) Engine.getInstance().getCurrentScene().find("group1");
+					bot2.getComponent(BotScript.class).clearAllBehaviours();
+					Bot bot3 = (Bot) Engine.getInstance().getCurrentScene().find("group2");
+					bot3.getComponent(BotScript.class).clearAllBehaviours();
+					LinkedList<BotScript> lista = new LinkedList<BotScript>();
+					lista.add(bot.getComponent(BotScript.class));
+					lista.add(bot2.getComponent(BotScript.class));
+					lista.add(bot3.getComponent(BotScript.class));
+					bot.getComponent(BotScript.class).addBehaviour(new Separation(bot.getComponent(BotScript.class), lista,10*Scene.SCALE,1000*Scene.SCALE));
+					bot2.getComponent(BotScript.class).addBehaviour(new Separation(bot2.getComponent(BotScript.class), lista,10*Scene.SCALE,1000*Scene.SCALE));
+					bot3.getComponent(BotScript.class).addBehaviour(new Separation(bot3.getComponent(BotScript.class), lista,10*Scene.SCALE,1000*Scene.SCALE));
 				}
 			}
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_4)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				if(behaviour == 0){
-					behaviour = 3;
-				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+				if(behaviour == 1){
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new ArriveUA(bot.getComponent(BotScript.class),bs,1*Scene.SCALE,3*Scene.SCALE,5f));
-				
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new ArriveUA(bot.getComponent(BotScript.class),player.getComponent(BotScript.class),1*Scene.SCALE,3*Scene.SCALE,5f));
 				}else if(behaviour == 2){
-					
-				}else{//behaviour == 3
+					Bot bot = (Bot)selected;
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new LookWhereYouGoing(bot.getComponent(BotScript.class), player.getComponent(BotScript.class), 15, 5, 3f));
 					
 				}
 			}
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_5)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				if(behaviour == 0){
-					behaviour = 3;
-				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+				if(behaviour == 1){
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new FleeU(bot.getComponent(BotScript.class),bs));
-				
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new FleeU(bot.getComponent(BotScript.class),player.getComponent(BotScript.class)));
 				}else if(behaviour == 2){
-					
+					Bot bot = (Bot)selected;
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					bot.getComponent(BotScript.class).addBehaviour(new WanderU(bot.getComponent(BotScript.class)));
+					bot.getComponent(BotScript.class).addBehaviour(new ObstacleAvoidance(bot.getComponent(BotScript.class), 2*Scene.SCALE, 1*Scene.SCALE, Engine.getInstance().getCurrentScene()) );
 				}
 			}
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_6)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				if(behaviour == 0){
-					behaviour = 3;
-				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+				if(behaviour == 1){
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new FleeUA(bot.getComponent(BotScript.class),bs));
-				
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new FleeUA(bot.getComponent(BotScript.class),player.getComponent(BotScript.class)));
 				}else if(behaviour == 2){
+					Bot bot = (Bot)selected;
+					bot.getComponent(BotScript.class).clearAllBehaviours();
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					Path path = new Path(0.5f*Scene.SCALE);
+					Pathfinding pathfinding = new Pathfinding(Engine.getInstance().getCurrentScene(), bot, bot.getComponent(BotScript.class).getPosition() ,player.getComponent(BotScript.class).getPosition(), Config.getInstacia().getUnitMap(LightUnit.class));
+					path.setParams(pathfinding.generate());
+					path.setTeam(0);
+					if( ! path.isEmpty())
+						bot.getComponent(BotScript.class).addBehaviour(new PathFollowing(bot.getComponent(BotScript.class), path, 0f));
 					
 				}
 			}
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_7)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				if(behaviour == 0){
-					behaviour = 3;
-				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+				if(behaviour == 1){
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new SeekU(bot.getComponent(BotScript.class),bs));
-				
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new SeekU(bot.getComponent(BotScript.class),player.getComponent(BotScript.class)));
 				}else if(behaviour == 2){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new Persue(bot.getComponent(BotScript.class), bs, 5f));
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new Persue(bot.getComponent(BotScript.class), player.getComponent(BotScript.class), 5f));
 					
 				}
 			}
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_8)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				if(behaviour == 0){
-					behaviour = 3;
-				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+				if(behaviour == 1){
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new SeekUA(bot.getComponent(BotScript.class),bs));
-				
-				}else if(behaviour == 2){
-					//TODO no funciona bien
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
-					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new Wander(bot.getComponent(BotScript.class), 30, 10, 5f, 2, 30*Scene.SCALE, 3, 30));
-					
+					Bot player = (Bot) Engine.getInstance().getCurrentScene().find("testPlayer");
+					bot.getComponent(BotScript.class).addBehaviour(new SeekUA(bot.getComponent(BotScript.class),player.getComponent(BotScript.class)));
 				}
 			}
 		}
 		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_9)){
 			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
-				//TODO no funciona
-				if(behaviour == 0){
-					behaviour = 3;
-				} else if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
-					bot.getComponent(BotScript.class).clearAllBehaviours();
-					GameObject go = new GameObject("cursor");
-					BotScript bs = new BotScript(1, 1, 1, 1, getCursorPosition(), 30);
-					go.addComponent(bs);
-					Transform t = new Transform();
-					t.position = getCursorPosition();
-					go.addComponent(t);
-					bot.getComponent(BotScript.class).addBehaviour(new VelocityMatch(bot.getComponent(BotScript.class),bs,5f));
-				}
-			}
-		}
-		else if(Gdx.input.isKeyJustPressed(Input.Keys.NUM_0)){
-			if(Engine.getInstance().getCurrentScene().getSceneName().equals("test")){
 				if(behaviour == 1){
-					Bot bot = (Bot) Engine.getInstance().getCurrentScene().find("testUnit");
+					Bot bot = (Bot)selected;
 					bot.getComponent(BotScript.class).clearAllBehaviours();
 					bot.getComponent(BotScript.class).addBehaviour(new WanderU(bot.getComponent(BotScript.class)));
 				}
@@ -671,24 +688,21 @@ public class GameController extends Script {
 				ui.drawText("> Press '6' to Acelerated Flee behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press '7' to Uniform Seek behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press '8' to Acelerated Seek behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '9' to Velocity Match behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '0' to Wander behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '9' to Uniform Wander behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press 'K' to return", 10, lineY, Color.WHITE); lineY-=20;
 			}else if(behaviour == 2) {
-				ui.drawText("> Press '1' to Collision Avoidance behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '2' to Evade behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '3' to Face behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '1' to Wander behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '2' to Face behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '3' to Evade behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press '4' to LookWhereYouGoing behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press '5' to ObstacleAvoidance behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press '6' to PathFollowing behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press '7' to Persue behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '8' to Wander behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press 'K' to return", 10, lineY, Color.WHITE); lineY-=20;
 			}else{ // behaviour == 3
-				ui.drawText("> Press '1' to Alignment behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '2' to Attraction behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '3' to Cohesion behaviour", 10, lineY, Color.WHITE); lineY-=20;
-				ui.drawText("> Press '4' to Separation behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '1' to Attraction behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '2' to Cohesion behaviour", 10, lineY, Color.WHITE); lineY-=20;
+				ui.drawText("> Press '3' to Separation behaviour", 10, lineY, Color.WHITE); lineY-=20;
 				ui.drawText("> Press 'K' to return", 10, lineY, Color.WHITE); lineY-=20;
 			}
 		}else{

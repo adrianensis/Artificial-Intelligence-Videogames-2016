@@ -31,17 +31,7 @@ public class Game extends ApplicationAdapter {
 		// Creamos una escena con un mapa.
 		Engine.getInstance().setCurrentScene(new Scene("map.tmx","game"));
 		Engine.getInstance().addScene(new Scene("map.tmx","test"));
-//		createPlayer("bot00", new Vector2(13*Scene.SCALE,74*Scene.SCALE));
 		
-		// Creamos Bots 
-//		createBot("bot0", new Vector2(9*Scene.SCALE,73*Scene.SCALE), 1);
-//		createBot("bot1", new Vector2(5*Scene.SCALE,70*Scene.SCALE), 0);
-//		createBot("bot2", new Vector2(6*Scene.SCALE,66*Scene.SCALE), 1);
-//		createBot("bot3", new Vector2(8*Scene.SCALE,60*Scene.SCALE), 1);
-//		createBot("bot4", new Vector2(5*Scene.SCALE,62*Scene.SCALE), 1);
-//		createBot("bot5", new Vector2(12*Scene.SCALE,65*Scene.SCALE), 0);
-//		createPhantom("bot6", new Vector2(11*Scene.SCALE,62*Scene.SCALE), 1);
-//		createPhantom("bot7", new Vector2(15*Scene.SCALE,70*Scene.SCALE), 0);
 		prepareGame();
 		prepareTest();
 		
@@ -66,7 +56,10 @@ public class Game extends ApplicationAdapter {
 	}
 
 	public void prepareTest(){
-		createTestBot();
+		createTestBot("testUnit",new Vector2(10*Scene.SCALE,60*Scene.SCALE));
+		createTestBot("group1",new Vector2(8*Scene.SCALE,60*Scene.SCALE));
+		createTestBot("group2",new Vector2(6*Scene.SCALE,60*Scene.SCALE));
+		createTestPlayer();
 		createCam("cam","test");
 		createController("controller","test");
 	}
@@ -78,6 +71,16 @@ public class Game extends ApplicationAdapter {
 	 * 
 	 * 
 	 */
+	
+	public void createTestPlayer(){
+		String textureName = "shovel.png";
+		Vector2 pos =new Vector2(12*Scene.SCALE,72*Scene.SCALE);
+		Unit bot = new TestUnit("testPlayer", 0, textureName, pos, Config.getInstacia().getUnitMap(LightUnit.class));
+//		bot.getComponent(BotScript.class).addBehaviour(new Persue(bot.getComponent(BotScript.class), Engine.getInstance().getCurrentScene().find("player").getComponent(BotScript.class), 5f));
+		
+	
+		Engine.getInstance().getScene("test").addObject(bot);
+	}
 	
 	/**
 	 * Funcion para crear un jugador.
@@ -152,11 +155,10 @@ public class Game extends ApplicationAdapter {
 		Engine.getInstance().getScene(sceneName).addObject(obj);
 	}
 	
-	public void createTestBot(){
+	public void createTestBot(String name, Vector2 spawnPos){
 		
 		String textureName = "yoshi.png";
-		Vector2 pos =new Vector2(10*Scene.SCALE,70*Scene.SCALE);
-		Unit bot = new TestUnit("testUnit", 0, textureName, pos, Config.getInstacia().getUnitMap(LightUnit.class));
+		Unit bot = new TestUnit(name, 0, textureName, spawnPos, Config.getInstacia().getUnitMap(LightUnit.class));
 //		bot.getComponent(BotScript.class).addBehaviour(new Persue(bot.getComponent(BotScript.class), Engine.getInstance().getCurrentScene().find("player").getComponent(BotScript.class), 5f));
 		
 	
