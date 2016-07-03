@@ -1,4 +1,4 @@
-# iav-2016
+# ai-videogames-2016
 
 ### Real Time Wargame Demo.
 ##### An AI for videogames subject project.
