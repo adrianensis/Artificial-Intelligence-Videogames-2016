@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.dermetfan.libgdx-utils</groupId>
+  <artifactId>libgdx-utils-box2d</artifactId>
+  <version>0.13.2</version>
+  <name>libgdx-utils-box2d</name>
+  <description>support library for libGDX (box2d module)</description>
+  <url>http://dermetfan.net</url>
+  <licenses>
+    <license>
+      <name>Apache 2.0</name>
+      <url>http://apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Robin Stumm</name>
+      <email>serverkorken@gmail.com</email>
+      <url>http://dermetfan.net</url>
+      <organization>dermetfan</organization>
+      <organizationUrl>http://dermetfan.net</organizationUrl>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:hg:http://bitbucket.org/dermetfan/libgdx-utils</connection>
+    <developerConnection>scm:hg:http://bitbucket.org/dermetfan/libgdx-utils</developerConnection>
+    <url>http://bitbucket.org/dermetfan/libgdx-utils</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.dermetfan.libgdx-utils</groupId>
+      <artifactId>libgdx-utils</artifactId>
+      <version>0.13.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.badlogicgames.gdx</groupId>
+      <artifactId>gdx-box2d</artifactId>
+      <version>1.7.1</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+  <packaging>jar</packaging>
+</project>

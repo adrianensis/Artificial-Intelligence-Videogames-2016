@@ -11,3 +11,7 @@ Artificial Intelligence for Video Games. Java + LibGDX.
 * Flocking
 * State Machines
 * Pathfinding
+
+### Executable
+
+You can execute the RealTimeWargame.jar file!
